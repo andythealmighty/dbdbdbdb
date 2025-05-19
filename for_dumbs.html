@@ -1352,6 +1352,78 @@
                 <p>하나의 정보(예: 사용자)는 여러 다른 정보(매물, 메시지, 계약 등)와 연결됩니다.</p>
                 <p>이런 연결 관계 덕분에 "강남에 있는 김철수 중개사가 등록한 모든 매물"과 같은 복잡한 정보도 쉽게 찾을 수 있어요.</p>
             </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    예시 3: 부동산 중개인의 매물 등록 및 매칭 과정 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        부동산 중개인이 매물을 등록하고 프랜차이즈 요청과 매칭하는 과정을 살펴봅시다.
+                    </div>
+                    <ol>
+                        <li>김철수씨는 부동산 중개인으로 <strong>users</strong> 테이블에 ID 1번으로 등록되어 있어요.</li>
+                        <li>그의 중개사 정보는 <strong>agent_profiles</strong> 테이블에 "행복한 부동산", 면허번호 "서울12345"로 저장되어 있어요.</li>
+                        <li>김철수씨는 새로운 상가 매물을 <strong>properties</strong> 테이블에 등록해요 (강남역 1분 거리, 30평, 보증금 5천만원 등).</li>
+                        <li>등록된 매물에 대해 <strong>ai_reports</strong> 분석을 요청하고, 해당 매물이 어떤 업종에 적합한지 확인해요.</li>
+                        <li>분석 결과는 <strong>ai_report_location</strong>, <strong>ai_report_market</strong>, <strong>ai_report_profit</strong> 등의 테이블에 저장돼요.</li>
+                        <li>김철수씨는 <strong>property_requests</strong> 테이블에서 '맛있는 치킨' 프랜차이즈가 요청한 매물 조건을 확인해요.</li>
+                        <li>조건이 맞는 것 같아 <strong>chat_rooms</strong>을 통해 프랜차이즈 담당자에게 메시지를 보내요.</li>
+                        <li>매물 정보와 AI 보고서를 <strong>messages</strong> 테이블에 첨부파일로 공유해요.</li>
+                        <li>프랜차이즈가 관심을 보이면, 예비 점주도 찾아 <strong>contract_parties</strong> 테이블에 모든 관계자를 연결해요.</li>
+                        <li>계약이 완료되면 <strong>activity_logs</strong> 테이블에 "매물 계약 완료" 활동이 기록돼요.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    예시 4: 부동산 중개인의 프랜차이즈 매물 요청 대응 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        부동산 중개인이 프랜차이즈의 매물 요청에 대응하는 과정을 살펴봅시다.
+                    </div>
+                    <ol>
+                        <li>김철수씨는 <strong>notifications</strong> 테이블을 통해 새로운 매물 요청 알림을 받았어요.</li>
+                        <li><strong>property_requests</strong> 테이블에서 '맛있는 치킨' 프랜차이즈가 강남역 인근 1층 상가를 찾는다는 요청을 확인해요.</li>
+                        <li><strong>request_preferences</strong> 테이블에서 상세 조건(30평 이상, 보증금 1억 이하 등)을 확인해요.</li>
+                        <li>김철수씨는 <strong>properties</strong> 테이블에서 조건에 맞는 매물들을 필터링해요.</li>
+                        <li>적합한 매물 3개를 찾아 <strong>ai_reports</strong>를 확인하고 치킨집에 적합한지 분석해요.</li>
+                        <li><strong>ai_report_competition</strong> 테이블에서 주변 경쟁 업체 정보를 확인해요.</li>
+                        <li>박지민 프랜차이즈 담당자에게 <strong>chat_rooms</strong>을 통해 연락해요.</li>
+                        <li>매물 정보와 AI 분석 자료를 <strong>attachments</strong> 테이블을 통해 메시지에 첨부해요.</li>
+                        <li>관심을 보이는 매물에 대해 현장 방문 일정을 잡고 <strong>activity_logs</strong>에 기록해요.</li>
+                        <li>계약이 성사되면 <strong>contracts</strong> 테이블에 새 계약이 추가되고, 김철수씨는 중개 수수료를 받아요.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    예시 5: 부동산 중개인의 데이터 기반 매물 관리 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        부동산 중개인이 데이터를 활용해 매물을 전략적으로 관리하는 과정을 살펴봅시다.
+                    </div>
+                    <ol>
+                        <li>김철수씨는 자신이 등록한 모든 매물을 <strong>properties</strong> 테이블에서 확인해요 (agent_id = 1).</li>
+                        <li>각 매물별 <strong>ai_reports</strong> 데이터를 분석해 어떤 매물이 가장 인기있는지 파악해요.</li>
+                        <li><strong>activity_logs</strong> 테이블에서 사용자들이 어떤 매물에 관심을 보이는지 확인해요.</li>
+                        <li><strong>franchises</strong> 테이블에서 최근 확장 중인 프랜차이즈 브랜드를 찾아요.</li>
+                        <li>해당 브랜드에 적합한 매물을 <strong>ai_report_market</strong> 데이터를 바탕으로 선별해요.</li>
+                        <li>선별된 매물을 <strong>property_requests</strong>와 매칭해 타겟 프랜차이즈에 <strong>messages</strong>로 제안해요.</li>
+                        <li>지속적으로 <strong>regions</strong> 테이블의 지역 정보를 분석해 유망 지역의 매물을 우선적으로 확보해요.</li>
+                        <li>성공적인 계약 패턴을 <strong>contracts</strong> 테이블에서 분석해 비슷한 조건의 매물을 더 확보해요.</li>
+                        <li>모든 커뮤니케이션 기록은 <strong>messages</strong> 테이블에 저장되어 클라이언트와의 관계를 유지하는 데 활용해요.</li>
+                        <li>이렇게 데이터 기반으로, 김철수씨는 더 효율적인 매물 중개가 가능해져요!</li>
+                    </ol>
+                </div>
+            </div>
         </div>
 
         <div class="nav-buttons" style="margin-top: 40px; margin-bottom: 40px;">
