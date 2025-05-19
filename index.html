@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB 스키마 시각화</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #e9ecef;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --highlight-color: #e3f2fd;
+            --category-colors: {
+                users: #3498db;
+                properties: #2ecc71;
+                ai: #e74c3c;
+                contracts: #f1c40f;
+                communication: #9b59b6;
+                others: #95a5a6;
+            }
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary-color);
+        }
+
+        .schema-container {
+            position: relative;
+            min-height: 800px;
+        }
+
+        .category-section {
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .category-header {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+            color: var(--primary-color);
+        }
+
+        .category-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        .table-card.highlighted {
+            background-color: var(--highlight-color);
+            box-shadow: 0 0 0 2px var(--secondary-color);
+        }
+
+        .table-card.related {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .table-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .column-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .column {
+            background: var(--background-color);
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .column:hover {
+            background: #f1f3f5;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .column-name {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .column-type {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .column-comment {
+            color: #868e96;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .relationship {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .relationship-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 0.9em;
+            color: var(--secondary-color);
+            cursor: pointer;
+        }
+
+        .relationship-item:hover {
+            text-decoration: underline;
+        }
+
+        /* 관계선 스타일 개선 */
+        .relationship-line {
+            position: absolute;
+            background-color: var(--secondary-color);
+            height: 2px;
+            transform-origin: left center;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .relationship-line.highlighted {
+            opacity: 1;
+            height: 3px;
+            background-color: #e74c3c;
+        }
+
+        .relationship-line::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 5px 0 5px 8px;
+            border-color: transparent transparent transparent var(--secondary-color);
+        }
+
+        .relationship-line.highlighted::after {
+            border-color: transparent transparent transparent #e74c3c;
+        }
+
+        /* 툴팁 스타일 */
+        .tooltip {
+            position: absolute;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            font-size: 0.9em;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        /* 카테고리별 색상 */
+        .category-users { --category-color: #3498db; }
+        .category-properties { --category-color: #2ecc71; }
+        .category-ai { --category-color: #e74c3c; }
+        .category-contracts { --category-color: #f1c40f; }
+        .category-communication { --category-color: #9b59b6; }
+        .category-others { --category-color: #95a5a6; }
+
+        /* 반응형 디자인 */
+        @media (max-width: 1200px) {
+            .category-content {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .category-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>데이터베이스 스키마 시각화</h1>
+            <p>테이블을 클릭하여 관계를 확인하세요</p>
+        </div>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" placeholder="테이블 또는 컬럼 검색...">
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active" data-category="all">전체</button>
+                <button class="filter-btn" data-category="users">사용자</button>
+                <button class="filter-btn" data-category="properties">매물</button>
+                <button class="filter-btn" data-category="ai">AI 분석</button>
+                <button class="filter-btn" data-category="contracts">계약</button>
+                <button class="filter-btn" data-category="communication">커뮤니케이션</button>
+                <button class="filter-btn" data-category="others">기타</button>
+            </div>
+        </div>
+
+        <div class="schema-container" id="schemaContainer">
+            <!-- 테이블 카드들이 여기에 동적으로 추가됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        // 데이터베이스 스키마 데이터
+        const schemaData = {
+            // A. Users and Profiles
+            users: {
+                category: "users",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '고유 사용자 ID', isPrimary: true },
+                    { name: 'email', type: 'VARCHAR(255)', comment: '로그인 이메일', isUnique: true },
+                    { name: 'password_hash', type: 'VARCHAR(255)', comment: '암호화된 비밀번호' },
+                    { name: 'name', type: 'VARCHAR(100)', comment: '사용자 이름' },
+                    { name: 'phone', type: 'VARCHAR(20)', comment: '연락처' },
+                    { name: 'role', type: 'ENUM', comment: '사용자 역할 (프랜차이즈, 부동산, 예비점주, 관리자)' },
+                    { name: 'is_deleted', type: 'BOOLEAN', comment: '소프트 삭제 여부' },
+                    { name: 'created_at', type: 'DATETIME', comment: '생성일시' }
+                ]
+            },
+            franchise_profiles: {
+                category: "users",
+                columns: [
+                    { name: 'user_id', type: 'INT', comment: 'users.id 참조', isPrimary: true },
+                    { name: 'company_name', type: 'VARCHAR(255)', comment: '프랜차이즈 회사 이름' },
+                    { name: 'position', type: 'VARCHAR(100)', comment: '직위' },
+                    { name: 'bio', type: 'TEXT', comment: '자기소개' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ]
+            },
+            agent_profiles: {
+                category: "users",
+                columns: [
+                    { name: 'user_id', type: 'INT', comment: 'users.id 참조', isPrimary: true },
+                    { name: 'agency_name', type: 'VARCHAR(255)', comment: '부동산 회사 이름' },
+                    { name: 'license_number', type: 'VARCHAR(100)', comment: '공인중개사 등록번호' },
+                    { name: 'bio', type: 'TEXT', comment: '자기소개' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ]
+            },
+            owner_profiles: {
+                category: "users",
+                columns: [
+                    { name: 'user_id', type: 'INT', comment: 'users.id 참조', isPrimary: true },
+                    { name: 'interests', type: 'TEXT', comment: '관심 프랜차이즈/업종/지역 등' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ]
+            },
+
+            // B. Properties (매물)
+            properties: {
+                category: "properties",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '매물 ID', isPrimary: true },
+                    { name: 'title', type: 'VARCHAR(255)', comment: '매물 제목' },
+                    { name: 'address', type: 'VARCHAR(500)', comment: '상세 주소' },
+                    { name: 'region_code', type: 'VARCHAR(10)', comment: '행정동 코드' },
+                    { name: 'area_m2', type: 'FLOAT', comment: '면적 (㎡)' },
+                    { name: 'area_pyeong', type: 'FLOAT', comment: '면적 (평)' },
+                    { name: 'deposit', type: 'INT', comment: '보증금' },
+                    { name: 'monthly_rent', type: 'INT', comment: '월세' },
+                    { name: 'sale_price', type: 'INT', comment: '매매가' },
+                    { name: 'management_fee', type: 'INT', comment: '관리비' },
+                    { name: 'floor', type: 'INT', comment: '층수' },
+                    { name: 'building_type', type: 'VARCHAR(100)', comment: '건물 유형 (상가, 사무실 등)' },
+                    { name: 'year_built', type: 'INT', comment: '건축 연도' },
+                    { name: 'renovated', type: 'BOOLEAN', comment: '리모델링 여부' },
+                    { name: 'available_from', type: 'DATE', comment: '입주 가능일' },
+                    { name: 'status', type: 'ENUM', comment: '상태 (available, pending, sold)' },
+                    { name: 'is_deleted', type: 'BOOLEAN', comment: '소프트 삭제 여부' },
+                    { name: 'agent_id', type: 'INT', comment: '등록한 부동산 사용자 ID' },
+                    { name: 'created_at', type: 'DATETIME', comment: '등록일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'agent_id' }
+                ]
+            },
+
+            // C. Property Requests (매물 요청)
+            property_requests: {
+                category: "properties",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '요청 ID', isPrimary: true },
+                    { name: 'franchise_id', type: 'INT', comment: '요청한 프랜차이즈 사용자 ID' },
+                    { name: 'title', type: 'VARCHAR(255)', comment: '요청 제목' },
+                    { name: 'description', type: 'TEXT', comment: '요청 설명' },
+                    { name: 'region_preference', type: 'VARCHAR(255)', comment: '선호 지역' },
+                    { name: 'radius_km', type: 'INT', comment: '선호 지역 반경 (km)' },
+                    { name: 'urgency_level', type: 'VARCHAR(50)', comment: '긴급도 표시' },
+                    { name: 'contact_name', type: 'VARCHAR(100)', comment: '담당자 이름' },
+                    { name: 'contact_phone', type: 'VARCHAR(50)', comment: '담당자 연락처' },
+                    { name: 'status', type: 'ENUM', comment: '상태 (pending, in_progress, completed, cancelled)' },
+                    { name: 'is_deleted', type: 'BOOLEAN', comment: '삭제 여부' },
+                    { name: 'due_date', type: 'DATE', comment: '마감일' },
+                    { name: 'created_at', type: 'DATETIME', comment: '등록일' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'franchise_id' }
+                ]
+            },
+            request_preferences: {
+                category: "properties",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'request_id', type: 'INT', comment: 'property_requests.id 참조' },
+                    { name: 'property_type', type: 'VARCHAR(100)', comment: '매물 유형' },
+                    { name: 'transaction_type', type: 'VARCHAR(50)', comment: '거래 유형 (임대, 매매 등)' },
+                    { name: 'category', type: 'VARCHAR(100)', comment: '업종 카테고리' },
+                    { name: 'min_area', type: 'FLOAT', comment: '최소 면적' },
+                    { name: 'max_area', type: 'FLOAT', comment: '최대 면적' },
+                    { name: 'min_floor', type: 'INT', comment: '최소 층수' },
+                    { name: 'min_rooms', type: 'INT', comment: '최소 방수' },
+                    { name: 'min_toilets', type: 'INT', comment: '최소 화장실 수' },
+                    { name: 'min_parking', type: 'INT', comment: '최소 주차공간 수' },
+                    { name: 'required_facilities', type: 'TEXT', comment: '필수 내부 시설 (엘리베이터 등)' },
+                    { name: 'required_surroundings', type: 'TEXT', comment: '필수 주변 시설 (지하철 등)' },
+                    { name: 'min_budget', type: 'INT', comment: '예산 범위 최소' },
+                    { name: 'max_budget', type: 'INT', comment: '예산 범위 최대' },
+                    { name: 'min_deposit', type: 'INT', comment: '보증금 범위 최소' },
+                    { name: 'max_deposit', type: 'INT', comment: '보증금 범위 최대' },
+                    { name: 'min_rent', type: 'INT', comment: '월세 범위 최소' },
+                    { name: 'max_rent', type: 'INT', comment: '월세 범위 최대' },
+                    { name: 'max_maintenance', type: 'INT', comment: '관리비 최대' },
+                    { name: 'max_premium', type: 'INT', comment: '권리금 최대' },
+                    { name: 'notes', type: 'TEXT', comment: '추가 메모' },
+                    { name: 'tags', type: 'TEXT', comment: '검색용 태그 (AI용)' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'property_requests', column: 'request_id' }
+                ]
+            },
+
+            // D. AI Reports (AI 분석 보고서)
+            ai_reports: {
+                category: "ai",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'property_id', type: 'INT', comment: '분석 대상 매물 ID' },
+                    { name: 'request_id', type: 'INT', comment: '분석 대상 요청 ID' },
+                    { name: 'report_type', type: 'ENUM', comment: '분석 대상 구분 (property, request)' },
+                    { name: 'status', type: 'ENUM', comment: '상태 (pending, processing, completed, failed)' },
+                    { name: 'overall_score', type: 'DECIMAL(5,2)', comment: '종합 점수' },
+                    { name: 'summary', type: 'TEXT', comment: '요약 설명' },
+                    { name: 'created_at', type: 'DATETIME', comment: '생성일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'properties', column: 'property_id' },
+                    { type: 'foreign_key', target: 'property_requests', column: 'request_id' }
+                ]
+            },
+            ai_report_location: {
+                category: "ai",
+                columns: [
+                    { name: 'report_id', type: 'INT', comment: 'ai_reports.id 참조', isPrimary: true },
+                    { name: 'location_score', type: 'DECIMAL(5,2)', comment: '입지 점수' },
+                    { name: 'population_analysis', type: 'JSON', comment: '시간대별 유동인구' },
+                    { name: 'demographics', type: 'JSON', comment: '인구 통계 (연령, 성별, 소득)' },
+                    { name: 'strengths', type: 'TEXT', comment: '장점' },
+                    { name: 'weaknesses', type: 'TEXT', comment: '단점' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'ai_reports', column: 'report_id' }
+                ]
+            },
+            ai_report_market: {
+                category: "ai",
+                columns: [
+                    { name: 'report_id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'market_score', type: 'DECIMAL(5,2)', comment: '상권 점수' },
+                    { name: 'age_distribution', type: 'JSON', comment: '연령 분포' },
+                    { name: 'gender_income_distribution', type: 'JSON', comment: '성별+소득 분포' },
+                    { name: 'traffic_by_day_hour', type: 'JSON', comment: '요일/시간대별 유동' },
+                    { name: 'strengths', type: 'TEXT', comment: '강점' },
+                    { name: 'opportunities', type: 'TEXT', comment: '기회' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'ai_reports', column: 'report_id' }
+                ]
+            },
+            ai_report_competition: {
+                category: "ai",
+                columns: [
+                    { name: 'report_id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'competition_score', type: 'DECIMAL(5,2)', comment: '경쟁 점수' },
+                    { name: 'nearby_competitors', type: 'JSON', comment: '반경 내 경쟁자 목록' },
+                    { name: 'risks', type: 'TEXT', comment: '리스크' },
+                    { name: 'differentiation', type: 'TEXT', comment: '차별화 전략' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'ai_reports', column: 'report_id' }
+                ]
+            },
+            ai_report_profit: {
+                category: "ai",
+                columns: [
+                    { name: 'report_id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'profit_score', type: 'DECIMAL(5,2)', comment: '수익성 점수' },
+                    { name: 'expected_revenue_min', type: 'INT', comment: '예상 수익 최소' },
+                    { name: 'expected_revenue_avg', type: 'INT', comment: '예상 수익 평균' },
+                    { name: 'expected_revenue_max', type: 'INT', comment: '예상 수익 최대' },
+                    { name: 'roi', type: 'DECIMAL(5,2)', comment: '투자수익률' },
+                    { name: 'break_even_point', type: 'INT', comment: '손익분기점' },
+                    { name: 'payback_period', type: 'INT', comment: '회수 기간' },
+                    { name: 'strengths', type: 'TEXT', comment: '강점' },
+                    { name: 'risks', type: 'TEXT', comment: '리스크' },
+                    { name: 'improvements', type: 'TEXT', comment: '개선점' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'ai_reports', column: 'report_id' }
+                ]
+            },
+            ai_report_history: {
+                category: "ai",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'report_id', type: 'INT', comment: '대상 보고서' },
+                    { name: 'version', type: 'INT', comment: '버전 번호' },
+                    { name: 'data_snapshot', type: 'JSON', comment: '전체 스냅샷' },
+                    { name: 'updated_by', type: 'INT', comment: '수정자' },
+                    { name: 'updated_at', type: 'DATETIME', comment: '수정일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'ai_reports', column: 'report_id' },
+                    { type: 'foreign_key', target: 'users', column: 'updated_by' }
+                ]
+            },
+
+            // E. Contracts (계약)
+            contracts: {
+                category: "contracts",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '계약 ID', isPrimary: true },
+                    { name: 'property_id', type: 'INT', comment: '대상 매물' },
+                    { name: 'type', type: 'ENUM', comment: '계약 유형 (lease, sale, franchise_agreement)' },
+                    { name: 'status', type: 'ENUM', comment: '상태 (draft, in_progress, completed, cancelled)' },
+                    { name: 'start_date', type: 'DATE', comment: '계약 시작일' },
+                    { name: 'end_date', type: 'DATE', comment: '계약 종료일' },
+                    { name: 'deposit', type: 'INT', comment: '보증금' },
+                    { name: 'monthly_rent', type: 'INT', comment: '월세' },
+                    { name: 'contract_fee', type: 'INT', comment: '계약 수수료' },
+                    { name: 'is_deleted', type: 'BOOLEAN', comment: '소프트 삭제 여부' },
+                    { name: 'created_at', type: 'DATETIME', comment: '생성일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'properties', column: 'property_id' }
+                ]
+            },
+            contract_parties: {
+                category: "contracts",
+                columns: [
+                    { name: 'contract_id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'franchise_id', type: 'INT', comment: '프랜차이즈 사용자 ID' },
+                    { name: 'agent_id', type: 'INT', comment: '부동산 사용자 ID' },
+                    { name: 'owner_id', type: 'INT', comment: '예비 점주 사용자 ID' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'contracts', column: 'contract_id' },
+                    { type: 'foreign_key', target: 'users', column: 'franchise_id' },
+                    { type: 'foreign_key', target: 'users', column: 'agent_id' },
+                    { type: 'foreign_key', target: 'users', column: 'owner_id' }
+                ]
+            },
+            contract_documents: {
+                category: "contracts",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'contract_id', type: 'INT', comment: '계약 ID' },
+                    { name: 'document_url', type: 'VARCHAR(1000)', comment: '계약서 PDF URL' },
+                    { name: 'uploaded_at', type: 'DATETIME', comment: '업로드 일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'contracts', column: 'contract_id' }
+                ]
+            },
+            contract_history: {
+                category: "contracts",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'contract_id', type: 'INT', comment: '계약 ID' },
+                    { name: 'version', type: 'INT', comment: '수정 버전' },
+                    { name: 'data_snapshot', type: 'JSON', comment: '상태 백업' },
+                    { name: 'updated_by', type: 'INT', comment: '수정자 ID' },
+                    { name: 'updated_at', type: 'DATETIME', comment: '수정일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'contracts', column: 'contract_id' },
+                    { type: 'foreign_key', target: 'users', column: 'updated_by' }
+                ]
+            },
+
+            // F. Communication (채팅 및 알림)
+            chat_rooms: {
+                category: "communication",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'created_by', type: 'INT', comment: '생성자 ID' },
+                    { name: 'created_at', type: 'DATETIME', comment: '생성일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'created_by' }
+                ]
+            },
+            messages: {
+                category: "communication",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'chat_room_id', type: 'INT', comment: '채팅방 ID' },
+                    { name: 'sender_id', type: 'INT', comment: '발신자 ID' },
+                    { name: 'message', type: 'TEXT', comment: '텍스트 메시지' },
+                    { name: 'sent_at', type: 'DATETIME', comment: '전송일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'chat_rooms', column: 'chat_room_id' },
+                    { type: 'foreign_key', target: 'users', column: 'sender_id' }
+                ]
+            },
+            attachments: {
+                category: "communication",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'message_id', type: 'INT', comment: '메시지 ID' },
+                    { name: 'file_url', type: 'VARCHAR(1000)', comment: '첨부파일 경로' },
+                    { name: 'uploaded_at', type: 'DATETIME', comment: '업로드 일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'messages', column: 'message_id' }
+                ]
+            },
+            notifications: {
+                category: "communication",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'user_id', type: 'INT', comment: '사용자 ID' },
+                    { name: 'type', type: 'ENUM', comment: '알림 유형 (message, property, request, contract, system)' },
+                    { name: 'related_id', type: 'INT', comment: '연결된 리소스 ID' },
+                    { name: 'message', type: 'TEXT', comment: '알림 메시지' },
+                    { name: 'is_read', type: 'BOOLEAN', comment: '읽음 여부' },
+                    { name: 'created_at', type: 'DATETIME', comment: '생성일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ]
+            },
+
+            // G. 기타 테이블
+            activity_logs: {
+                category: "others",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'user_id', type: 'INT', comment: '사용자 ID' },
+                    { name: 'action', type: 'VARCHAR(255)', comment: '동작 이름 (예: 매물 등록)' },
+                    { name: 'target_table', type: 'VARCHAR(100)', comment: '대상 테이블명' },
+                    { name: 'target_id', type: 'INT', comment: '대상 ID' },
+                    { name: 'created_at', type: 'DATETIME', comment: '생성일시' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ]
+            },
+            franchises: {
+                category: "others",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'name', type: 'VARCHAR(255)', comment: '프랜차이즈 이름' },
+                    { name: 'description', type: 'TEXT', comment: '브랜드 설명' },
+                    { name: 'industry_category', type: 'VARCHAR(100)', comment: '업종 분류' },
+                    { name: 'avg_score', type: 'DECIMAL(3,2)', comment: '평균 점수' },
+                    { name: 'avg_revenue', type: 'INT', comment: '평균 매출' },
+                    { name: 'created_at', type: 'DATETIME', comment: '생성일시' }
+                ]
+            },
+            categories: {
+                category: "others",
+                columns: [
+                    { name: 'id', type: 'INT', comment: 'ID', isPrimary: true },
+                    { name: 'name', type: 'VARCHAR(100)', comment: '업종 카테고리명' }
+                ]
+            },
+            regions: {
+                category: "others",
+                columns: [
+                    { name: 'id', type: 'VARCHAR(10)', comment: '행정 코드 (ex. 11110)', isPrimary: true },
+                    { name: 'name', type: 'VARCHAR(255)', comment: '행정동 이름' },
+                    { name: 'parent_id', type: 'VARCHAR(10)', comment: '상위 지역 ID' },
+                    { name: 'region_type', type: 'ENUM', comment: '지역 구분 (province, district, sub_district)' }
+                ]
+            }
+        };
+
+        // 테이블 카드 생성 함수
+        function createTableCard(tableName, tableData) {
+            const card = document.createElement('div');
+            card.className = 'table-card';
+            card.dataset.table = tableName;
+            card.dataset.category = tableData.category;
+            
+            if (tableData.relationships) {
+                card.dataset.relationships = JSON.stringify(tableData.relationships);
+            }
+            
+            // 클릭 이벤트 리스너 추가
+            card.addEventListener('click', handleTableClick);
+            
+            const header = document.createElement('div');
+            header.className = 'table-header';
+            
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'table-name';
+            nameDiv.textContent = tableName;
+            
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'table-category';
+            categoryDiv.textContent = tableData.category;
+            
+            header.appendChild(nameDiv);
+            header.appendChild(categoryDiv);
+            card.appendChild(header);
+
+            const columnList = document.createElement('div');
+            columnList.className = 'column-list';
+
+            tableData.columns.forEach(column => {
+                const columnDiv = document.createElement('div');
+                columnDiv.className = 'column';
+                
+                const columnHeader = document.createElement('div');
+                columnHeader.className = 'column-header';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'column-name';
+                nameSpan.textContent = column.name;
+                if (column.isPrimary) nameSpan.textContent += ' 🔑';
+                if (column.isUnique) nameSpan.textContent += ' 🔒';
+                
+                const typeSpan = document.createElement('span');
+                typeSpan.className = 'column-type';
+                typeSpan.textContent = column.type;
+                
+                columnHeader.appendChild(nameSpan);
+                columnHeader.appendChild(typeSpan);
+                
+                const commentSpan = document.createElement('div');
+                commentSpan.className = 'column-comment';
+                commentSpan.textContent = column.comment;
+                
+                columnDiv.appendChild(columnHeader);
+                columnDiv.appendChild(commentSpan);
+                columnList.appendChild(columnDiv);
+            });
+
+            card.appendChild(columnList);
+
+            if (tableData.relationships && tableData.relationships.length > 0) {
+                const relationshipDiv = document.createElement('div');
+                relationshipDiv.className = 'relationship';
+                
+                tableData.relationships.forEach(rel => {
+                    const relItem = document.createElement('div');
+                    relItem.className = 'relationship-item';
+                    relItem.textContent = `→ ${rel.target} (${rel.column})`;
+                    relationshipDiv.appendChild(relItem);
+                });
+                
+                card.appendChild(relationshipDiv);
+            }
+
+            return card;
+        }
+
+        // 테이블 카드 클릭 이벤트 처리
+        function handleTableClick(event) {
+            const card = event.currentTarget;
+            const tableName = card.dataset.table;
+            
+            // 모든 카드의 하이라이트 제거
+            document.querySelectorAll('.table-card').forEach(c => {
+                c.classList.remove('highlighted', 'related');
+            });
+            
+            // 모든 관계선의 하이라이트 제거
+            document.querySelectorAll('.relationship-line').forEach(line => {
+                line.classList.remove('highlighted');
+            });
+            
+            // 클릭된 카드 하이라이트
+            card.classList.add('highlighted');
+            
+            // 관련된 카드들 하이라이트
+            const relationships = JSON.parse(card.dataset.relationships || '[]');
+            relationships.forEach(rel => {
+                const relatedCard = document.querySelector(`[data-table="${rel.target}"]`);
+                if (relatedCard) {
+                    relatedCard.classList.add('related');
+                }
+            });
+            
+            // 관련된 관계선 하이라이트
+            document.querySelectorAll('.relationship-line').forEach(line => {
+                if (line.dataset.source === tableName || line.dataset.target === tableName) {
+                    line.classList.add('highlighted');
+                }
+            });
+        }
+
+        // 검색 기능
+        document.querySelector('.search-box input').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.table-card');
+            
+            cards.forEach(card => {
+                const tableName = card.querySelector('.table-name').textContent.toLowerCase();
+                const columns = card.querySelectorAll('.column');
+                let isVisible = tableName.includes(searchTerm);
+                
+                if (!isVisible) {
+                    columns.forEach(column => {
+                        if (column.textContent.toLowerCase().includes(searchTerm)) {
+                            isVisible = true;
+                        }
+                    });
+                }
+                
+                card.style.display = isVisible ? 'block' : 'none';
+            });
+        });
+
+        // 카테고리 필터링
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const category = btn.dataset.category;
+                const cards = document.querySelectorAll('.table-card');
+                
+                cards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // 관계선 그리기 함수 개선
+        function drawRelationships() {
+            // 기존 관계선 제거
+            document.querySelectorAll('.relationship-line').forEach(line => line.remove());
+
+            const cards = document.querySelectorAll('.table-card');
+            const relationships = new Map();
+
+            // 관계 정보 수집
+            cards.forEach(card => {
+                const tableName = card.dataset.table;
+                const relationships = JSON.parse(card.dataset.relationships || '[]');
+                relationships.set(tableName, relationships);
+            });
+
+            // 관계선 그리기
+            relationships.forEach((rels, sourceTable) => {
+                const sourceCard = document.querySelector(`[data-table="${sourceTable}"]`);
+                if (!sourceCard) return;
+
+                rels.forEach(rel => {
+                    const targetCard = document.querySelector(`[data-table="${rel.target}"]`);
+                    if (!targetCard) return;
+
+                    // 카드가 보이는 상태인지 확인
+                    if (sourceCard.offsetParent && targetCard.offsetParent) {
+                        drawRelationshipLine(sourceCard, targetCard, rel.type, sourceTable, rel.target);
+                    }
+                });
+            });
+        }
+
+        function drawRelationshipLine(sourceCard, targetCard, type, sourceTable, targetTable) {
+            const line = document.createElement('div');
+            line.className = 'relationship-line';
+            line.dataset.source = sourceTable;
+            line.dataset.target = targetTable;
+            
+            const sourceRect = sourceCard.getBoundingClientRect();
+            const targetRect = targetCard.getBoundingClientRect();
+            
+            // 카드의 중앙점 계산
+            const sourceX = sourceRect.right;
+            const sourceY = sourceRect.top + sourceRect.height / 2;
+            const targetX = targetRect.left;
+            const targetY = targetRect.top + targetRect.height / 2;
+            
+            // 관계선 길이와 각도 계산
+            const length = Math.sqrt(Math.pow(targetX - sourceX, 2) + Math.pow(targetY - sourceY, 2));
+            const angle = Math.atan2(targetY - sourceY, targetX - sourceX) * 180 / Math.PI;
+            
+            // 관계선 스타일 설정
+            line.style.width = `${length}px`;
+            line.style.left = `${sourceX}px`;
+            line.style.top = `${sourceY}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            
+            // 관계선에 툴팁 추가
+            line.title = `${sourceTable} → ${targetTable}`;
+            
+            document.body.appendChild(line);
+        }
+
+        // 윈도우 리사이즈 시 관계선 재그리기
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(drawRelationships, 250);
+        });
+
+        // 스크롤 시 관계선 업데이트
+        window.addEventListener('scroll', () => {
+            requestAnimationFrame(drawRelationships);
+        });
+
+        // 카테고리별로 테이블 그룹화
+        function groupTablesByCategory() {
+            const container = document.getElementById('schemaContainer');
+            container.innerHTML = '';
+            
+            const categories = {
+                users: '사용자 및 프로필',
+                properties: '매물',
+                ai: 'AI 분석',
+                contracts: '계약',
+                communication: '커뮤니케이션',
+                others: '기타'
+            };
+
+            Object.entries(categories).forEach(([category, title]) => {
+                const section = document.createElement('div');
+                section.className = `category-section category-${category}`;
+                
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.innerHTML = `<h2>${title}</h2>`;
+                
+                const content = document.createElement('div');
+                content.className = 'category-content';
+                
+                // 해당 카테고리의 테이블들 추가
+                Object.entries(schemaData)
+                    .filter(([_, data]) => data.category === category)
+                    .forEach(([tableName, tableData]) => {
+                        const card = createTableCard(tableName, tableData);
+                        content.appendChild(card);
+                    });
+                
+                section.appendChild(header);
+                section.appendChild(content);
+                container.appendChild(section);
+            });
+        }
+
+        // 초기화 함수
+        function initialize() {
+            groupTablesByCategory();
+            // 관계선 그리기를 약간 지연시켜 실행
+            setTimeout(drawRelationships, 100);
+        }
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', initialize);
+    </script>
+</body>
+</html>
