@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아주 쉬운 DB 스키마 이해하기</title>
+    <title>초보자를 위한 DB 스키마 이해하기</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 기존 CSS 스타일 유지 -->
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -201,9 +202,7 @@
 
         .category-users { background-color: #3498db; }
         .category-properties { background-color: #2ecc71; }
-        .category-ai { background-color: #e74c3c; }
         .category-contracts { background-color: #f1c40f; color: #333; }
-        .category-communication { background-color: #9b59b6; }
         .category-others { background-color: #95a5a6; }
 
         .img-container {
@@ -345,9 +344,7 @@
                 <li><a href="#structure">DB 구조 쉽게 이해하기</a></li>
                 <li><a href="#users">사용자 정보 (Users) 👤</a></li>
                 <li><a href="#properties">매물 정보 (Properties) 🏢</a></li>
-                <li><a href="#ai">AI 분석 보고서 (AI Reports) 🤖</a></li>
                 <li><a href="#contracts">계약 정보 (Contracts) 📝</a></li>
-                <li><a href="#communication">소통 기록 (Communication) 💬</a></li>
                 <li><a href="#others">기타 정보 (Others) 🔍</a></li>
                 <li><a href="#relations">테이블 간의 관계 이해하기</a></li>
                 <li><a href="#examples">실생활 예시로 이해하기</a></li>
@@ -416,12 +413,37 @@
         <div class="section" id="users">
             <h2><span class="category category-users">사용자</span> 사용자 정보 (Users) 👤</h2>
             <div class="explanation">
-                사용자 관련 테이블들은 시스템을 사용하는 모든 사람들의 정보를 저장해요. 프랜차이즈 담당자, 부동산 중개인, 점주 등 각 사용자의 기본 정보와 역할별 세부 정보를 관리합니다.
+                사용자 관련 테이블들은 시스템을 사용하는 모든 사람들의 정보를 저장해요. 프랜차이즈 담당자, 부동산 중개인, 예비 점주 등 각 사용자의 기본 정보와 역할별 세부 정보를 관리합니다.
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    users 테이블 (모든 사용자의 기본 정보) 
+                    user_roles 테이블 (사용자 역할) 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        시스템에서 사용하는 사용자 역할 유형을 정의하는 테이블입니다.
+                    </div>
+                    <div class="column-item column-item-primary">
+                        <span class="column-name">id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">역할 ID - 각 역할을 식별하는 고유 번호예요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">name</span>
+                        <span class="column-type">(VARCHAR(50))</span>
+                        <div class="column-desc">역할 이름 - 프랜차이즈, 부동산 중개사, 예비 점주, 관리자 등의 역할 이름이에요</div>
+                    </div>
+                    <div class="example">
+                        <p><strong>실제 예시:</strong> id가 1인 역할은 '프랜차이즈', id가 2인 역할은 '부동산 중개사'로 저장되어 있어요.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    users 테이블 (모든 사용자 기본 정보) 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
@@ -443,201 +465,150 @@
                         <span class="column-type">(VARCHAR(255))</span>
                         <div class="column-desc">암호화된 비밀번호 - 보안을 위해 실제 비밀번호가 아닌 암호화된 값을 저장해요</div>
                     </div>
-                    <div class="column-item">
-                        <span class="column-name">name</span>
-                        <span class="column-type">(VARCHAR(100))</span>
-                        <div class="column-desc">사용자 이름 - 실명 또는 닉네임이에요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">phone</span>
-                        <span class="column-type">(VARCHAR(20))</span>
-                        <div class="column-desc">연락처 - 전화번호예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">role</span>
-                        <span class="column-type">(ENUM)</span>
-                        <div class="column-desc">사용자 역할 - 프랜차이즈, 부동산, 예비점주, 관리자 중 하나예요</div>
+                    <div class="column-item column-item-foreign">
+                        <span class="column-name">role_id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">사용자 역할 ID - user_roles 테이블과 연결되어 사용자의 역할을 나타내요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">is_deleted</span>
-                        <span class="column-type">(BOOLEAN)</span>
+                        <span class="column-type">(TINYINT(1))</span>
                         <div class="column-desc">삭제 여부 - 계정 삭제 여부를 표시해요</div>
                     </div>
-                    <div class="column-item">
-                        <span class="column-name">created_at</span>
-                        <span class="column-type">(DATETIME)</span>
-                        <div class="column-desc">생성일시 - 계정이 만들어진 날짜와 시간이에요</div>
-                    </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> 김철수(id: 1)님은 부동산 중개사(role)로 가입했고, 이메일은 kim@example.com, 전화번호는 010-1234-5678입니다.</p>
+                        <p><strong>실제 예시:</strong> 김철수(id: 1)님은 이메일이 kim@example.com이고, 역할(role_id)은 2번(부동산 중개사)입니다.</p>
                     </div>
                 </div>
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    franchise_profiles 테이블 (프랜차이즈 담당자 프로필) 
+                    user_profiles 테이블 (사용자 프로필) 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
                     <div class="explanation">
-                        프랜차이즈 담당자의 추가 정보를 저장하는 테이블입니다.
+                        사용자의 개인 정보와 프로필을 저장하는 테이블입니다.
                     </div>
-                    <div class="column-item column-item-primary column-item-foreign">
+                    <div class="column-item column-item-primary">
+                        <span class="column-name">id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">프로필 ID - 각 프로필을 구분하는 고유 번호예요</div>
+                    </div>
+                    <div class="column-item column-item-foreign">
                         <span class="column-name">user_id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">users.id 참조 - users 테이블의 어떤 사용자인지 연결해요</div>
+                        <div class="column-desc">사용자 ID - users 테이블과 연결해 어떤 사용자의 프로필인지 나타내요</div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">company_name</span>
-                        <span class="column-type">(VARCHAR(255))</span>
-                        <div class="column-desc">프랜차이즈 회사 이름 - 담당하는 프랜차이즈 기업명이에요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">position</span>
+                        <span class="column-name">name</span>
                         <span class="column-type">(VARCHAR(100))</span>
-                        <div class="column-desc">직위 - 회사 내 직책이에요</div>
+                        <div class="column-desc">실명 - 사용자의 실제 이름이에요</div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">bio</span>
-                        <span class="column-type">(TEXT)</span>
-                        <div class="column-desc">자기소개 - 자신에 대한 소개글이에요</div>
+                        <span class="column-name">phone_number</span>
+                        <span class="column-type">(VARCHAR(20))</span>
+                        <div class="column-desc">전화번호 - 연락처예요</div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> 박지민(user_id: 3)님은 '맛있는 치킨' 프랜차이즈의 '출점 담당 매니저'이며, 자기소개에 "10년 경력의 출점 전문가입니다"라고 적었습니다.</p>
+                        <p><strong>실제 예시:</strong> 김철수님(user_id: 1)의 프로필에는 실명 "김철수", 전화번호 "010-1234-5678", 직위 "대표 공인중개사"가 저장되어 있어요.</p>
                     </div>
                 </div>
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    agent_profiles 테이블 (부동산 중개인 프로필) 
+                    agents, franchises, owners 테이블 (역할별 추가 정보) 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
                     <div class="explanation">
-                        부동산 중개인의 추가 정보를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary column-item-foreign">
-                        <span class="column-name">user_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">users.id 참조 - users 테이블의 어떤 사용자인지 연결해요</div>
+                        각 역할별 사용자의 추가 정보를 저장하는 테이블들입니다.
                     </div>
                     <div class="column-item">
-                        <span class="column-name">agency_name</span>
-                        <span class="column-type">(VARCHAR(255))</span>
-                        <div class="column-desc">부동산 회사 이름 - 소속된 부동산 중개사무소 이름이에요</div>
+                        <span class="column-name">agents 테이블</span>
+                        <div class="column-desc">
+                            - <strong>id:</strong> 고유 식별자<br>
+                            - <strong>user_id:</strong> 사용자 ID (고유값)<br>
+                            - <strong>agency_name:</strong> 부동산 중개사무소 이름<br>
+                            - <strong>license_number:</strong> 공인중개사 등록번호 (암호화 저장)
+                        </div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">license_number</span>
-                        <span class="column-type">(VARCHAR(100))</span>
-                        <div class="column-desc">공인중개사 등록번호 - 공인중개사 자격을 증명하는 번호예요</div>
+                        <span class="column-name">franchises 테이블</span>
+                        <div class="column-desc">
+                            - <strong>id:</strong> 고유 식별자<br>
+                            - <strong>user_id:</strong> 사용자 ID (고유값)<br>
+                            - <strong>company_name:</strong> 프랜차이즈 회사명<br>
+                            - <strong>company_number:</strong> 사업자등록번호 (암호화 저장)<br>
+                            - <strong>description:</strong> 회사 소개
+                        </div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">bio</span>
-                        <span class="column-type">(TEXT)</span>
-                        <div class="column-desc">자기소개 - 자신에 대한 소개글이에요</div>
+                        <span class="column-name">owners 테이블</span>
+                        <div class="column-desc">
+                            - <strong>id:</strong> 고유 식별자<br>
+                            - <strong>user_id:</strong> 사용자 ID (고유값)<br>
+                            - <strong>interests:</strong> 관심 프랜차이즈/지역 등
+                        </div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> 김철수(user_id: 1)님은 '행복한 부동산'의 공인중개사로, 면허번호는 '서울12345'이며, "상가 전문 중개사입니다"라고 소개했습니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    owner_profiles 테이블 (예비 점주 프로필) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        매장을 열고자 하는 예비 점주의 추가 정보를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary column-item-foreign">
-                        <span class="column-name">user_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">users.id 참조 - users 테이블의 어떤 사용자인지 연결해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">interests</span>
-                        <span class="column-type">(TEXT)</span>
-                        <div class="column-desc">관심 프랜차이즈/업종/지역 등 - 어떤 종류의 매장에 관심이 있는지 저장해요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 이영희(user_id: 2)님은 "카페, 베이커리 / 강남, 송파구 / 5천만원~1억 예산"이라고 자신의 관심사를 등록했습니다.</p>
+                        <p><strong>실제 예시:</strong></p>
+                        <p>1. 김철수님(user_id: 1)은 agents 테이블에 agency_name: "행복한 부동산", license_number: (암호화된 "서울12345") 정보가 있어요.</p>
+                        <p>2. 박지민님(user_id: 3)은 franchises 테이블에 company_name: "맛있는 치킨", description: "전국 500개 매장을 운영하는 치킨 프랜차이즈" 정보가 있어요.</p>
                     </div>
                 </div>
             </div>
             
             <div class="note">
                 <div class="note-title">쉽게 이해하기</div>
-                <p>🔑 users 테이블은 모든 사용자의 <strong>공통 정보</strong>를 저장해요.</p>
-                <p>👩‍💼 franchise_profiles는 <strong>프랜차이즈 담당자</strong>의 추가 정보를 저장해요.</p>
-                <p>🏢 agent_profiles는 <strong>부동산 중개인</strong>의 추가 정보를 저장해요.</p>
-                <p>💰 owner_profiles는 <strong>예비 점주</strong>의 추가 정보를 저장해요.</p>
-                <p>📌 모든 프로필 테이블은 user_id로 사용자 테이블과 연결됩니다!</p>
+                <p>🔑 user_roles는 사용자 유형(프랜차이즈, 부동산 중개사 등)을 정의해요.</p>
+                <p>👤 users는 모든 사용자의 <strong>로그인 정보</strong>를 저장해요.</p>
+                <p>📋 user_profiles는 모든 사용자의 <strong>개인 정보</strong>를 저장해요.</p>
+                <p>🏠 agents, franchises, owners는 각 역할별 <strong>추가 정보</strong>를 저장해요.</p>
+                <p>📌 모든 역할별 테이블은 user_id로 users 테이블과 연결됩니다!</p>
             </div>
         </div>
 
         <div class="section" id="properties">
             <h2><span class="category category-properties">매물</span> 매물 정보 (Properties) 🏢</h2>
             <div class="explanation">
-                매물 관련 테이블들은 판매 또는 임대 중인 부동산 정보와 프랜차이즈에서 요청한 매물 조건을 저장해요. 위치, 크기, 가격 등 상세 정보를 관리합니다.
+                매물 관련 테이블들은 부동산 매물과 프랜차이즈 매물 요청 정보를 저장해요. 위치, 면적, 가격, 파일 등 다양한 정보를 체계적으로 관리합니다.
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    properties 테이블 (매물 정보) 
+                    properties 테이블 (매물 기본 정보) 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
                     <div class="explanation">
-                        판매 또는 임대 중인 부동산 매물 정보를 저장하는 테이블입니다.
+                        매물의 기본 정보를 저장하는 테이블입니다.
                     </div>
                     <div class="column-item column-item-primary">
                         <span class="column-name">id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">매물 ID - 각 매물을 구분하는 고유 번호예요</div>
+                        <div class="column-desc">고유 매물 ID - 각 매물을 구분하는 고유 번호예요</div>
+                    </div>
+                    <div class="column-item column-item-foreign">
+                        <span class="column-name">agent_id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">등록한 부동산 중개사 ID - 이 매물을 등록한 부동산 중개사를 가리켜요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">title</span>
-                        <span class="column-type">(VARCHAR(255))</span>
+                        <span class="column-type">(VARCHAR(200))</span>
                         <div class="column-desc">매물 제목 - 매물을 소개하는 제목이에요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">address</span>
-                        <span class="column-type">(VARCHAR(500))</span>
-                        <div class="column-desc">상세 주소 - 매물의 정확한 위치예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">region_code</span>
-                        <span class="column-type">(VARCHAR(10))</span>
-                        <div class="column-desc">행정동 코드 - 행정구역 코드로, 지역을 구분하는 번호예요</div>
+                        <span class="column-type">(TEXT)</span>
+                        <div class="column-desc">매물 주소 - 매물의 정확한 위치예요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">area_m2</span>
-                        <span class="column-type">(FLOAT)</span>
-                        <div class="column-desc">면적 (㎡) - 매물의 크기를 제곱미터로 표시해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">area_pyeong</span>
-                        <span class="column-type">(FLOAT)</span>
-                        <div class="column-desc">면적 (평) - 매물의 크기를 평으로 표시해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">deposit</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">보증금 - 임대 계약 시 필요한 보증금이에요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">monthly_rent</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">월세 - 매달 내야 하는 임대료예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">sale_price</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">매매가 - 매물을 구입하는 가격이에요</div>
+                        <span class="column-type">(DECIMAL(10,2))</span>
+                        <div class="column-desc">면적 (제곱미터) - 매물의 크기를 제곱미터로 표시해요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">floor</span>
@@ -645,22 +616,93 @@
                         <div class="column-desc">층수 - 매물이 위치한 층이에요</div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">building_type</span>
-                        <span class="column-type">(VARCHAR(100))</span>
-                        <div class="column-desc">건물 유형 - 상가, 사무실 등 건물의 종류예요</div>
-                    </div>
-                    <div class="column-item">
                         <span class="column-name">status</span>
-                        <span class="column-type">(ENUM)</span>
-                        <div class="column-desc">상태 - 현재 매물의 상태로, '판매중', '계약중', '판매완료' 등이 있어요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">agent_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">등록한 부동산 사용자 ID - 이 매물을 등록한 부동산 중개인을 가리켜요</div>
+                        <span class="column-type">(VARCHAR(20))</span>
+                        <div class="column-desc">상태 - 현재 매물의 상태 (available, pending, sold)예요</div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> '강남역 1분 거리 신축 상가'(id: 5)는 서울시 강남구에 위치한 1층 상가로, 면적은 30㎡(약 9평), 보증금 5천만원에 월세 200만원이며 김철수 중개사(agent_id: 1)가 등록했습니다.</p>
+                        <p><strong>실제 예시:</strong> '강남역 1분 거리 신축 상가'(id: 5)는 김철수 중개사(agent_id: 1)가 등록한 매물로, 주소는 '서울시 강남구 강남대로 123', 면적은 30㎡, 층수는 1층, 상태는 'available'입니다.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    property_prices 테이블 (매물 가격 정보) 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        매물의 다양한 가격 정보를 저장하는 테이블입니다.
+                    </div>
+                    <div class="column-item column-item-primary">
+                        <span class="column-name">id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">고유 식별자 - 각 가격 정보를 구분하는 고유 번호예요</div>
+                    </div>
+                    <div class="column-item column-item-foreign">
+                        <span class="column-name">property_id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">매물 ID - 어떤 매물의 가격인지 연결해요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">field_name</span>
+                        <span class="column-type">(VARCHAR(50))</span>
+                        <div class="column-desc">가격 항목 - 어떤 종류의 가격인지 구분해요(보증금, 월세, 매매가 등)</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">value</span>
+                        <span class="column-type">(DECIMAL(15,2))</span>
+                        <div class="column-desc">금액 - 실제 가격 금액이에요</div>
+                    </div>
+                    <div class="example">
+                        <p><strong>실제 예시:</strong> 강남역 상가(property_id: 5)의 가격 정보는 여러 행으로 저장되어 있어요:</p>
+                        <p>1. field_name: "deposit", value: 50000000 (보증금 5천만원)</p>
+                        <p>2. field_name: "monthly_rent", value: 2000000 (월세 200만원)</p>
+                        <p>3. field_name: "maintenance_fee", value: 500000 (관리비 50만원)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    property_files 테이블 (매물 파일) 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        매물의 사진, 도면 등 파일 정보를 저장하는 테이블입니다.
+                    </div>
+                    <div class="column-item column-item-primary">
+                        <span class="column-name">id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">고유 식별자 - 각 파일을 구분하는 고유 번호예요</div>
+                    </div>
+                    <div class="column-item column-item-foreign">
+                        <span class="column-name">property_id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">매물 ID - 어떤 매물의 파일인지 연결해요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">file_type</span>
+                        <span class="column-type">(VARCHAR(50))</span>
+                        <div class="column-desc">파일 유형 - 사진, 도면, 계약서 등 파일의 종류예요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">file_path</span>
+                        <span class="column-type">(VARCHAR(255))</span>
+                        <div class="column-desc">파일 경로 - 서버에 저장된 파일의 위치예요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">is_primary</span>
+                        <span class="column-type">(TINYINT(1))</span>
+                        <div class="column-desc">대표 이미지 여부 - 매물의 대표 이미지인지 여부예요</div>
+                    </div>
+                    <div class="example">
+                        <p><strong>실제 예시:</strong> 강남역 상가(property_id: 5)에는 여러 파일이 연결되어 있어요:</p>
+                        <p>1. 대표 사진(is_primary: 1): "/uploads/properties/5/main.jpg"</p>
+                        <p>2. 내부 사진: "/uploads/properties/5/inside1.jpg"</p>
+                        <p>3. 도면: "/uploads/properties/5/floor_plan.pdf"</p>
                     </div>
                 </div>
             </div>
@@ -682,222 +724,122 @@
                     <div class="column-item column-item-foreign">
                         <span class="column-name">franchise_id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">요청한 프랜차이즈 사용자 ID - 이 요청을 한 프랜차이즈 담당자를 가리켜요</div>
+                        <div class="column-desc">요청한 프랜차이즈 ID - 이 요청을 한 프랜차이즈를 가리켜요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">title</span>
-                        <span class="column-type">(VARCHAR(255))</span>
+                        <span class="column-type">(VARCHAR(200))</span>
                         <div class="column-desc">요청 제목 - 매물 요청의 제목이에요</div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">region_preference</span>
-                        <span class="column-type">(VARCHAR(255))</span>
-                        <div class="column-desc">선호 지역 - 매물을 찾고 싶은 지역이에요</div>
+                        <span class="column-name">description</span>
+                        <span class="column-type">(TEXT)</span>
+                        <div class="column-desc">요청 설명 - 요청에 대한 상세 설명이에요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">region_code</span>
+                        <span class="column-type">(VARCHAR(20))</span>
+                        <div class="column-desc">지역 코드 - 매물을 찾고 싶은 지역 코드예요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">contact_name</span>
+                        <span class="column-type">(VARCHAR(100))</span>
+                        <div class="column-desc">담당자 이름 - 요청을 담당하는 사람의 이름이에요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">status</span>
-                        <span class="column-type">(ENUM)</span>
-                        <div class="column-desc">상태 - 요청의 현재 진행 상태예요 (대기중, 진행중, 완료됨, 취소됨)</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">due_date</span>
-                        <span class="column-type">(DATE)</span>
-                        <div class="column-desc">마감일 - 매물 찾기를 완료해야 하는 날짜예요</div>
+                        <span class="column-type">(VARCHAR(20))</span>
+                        <div class="column-desc">상태 - 요청의 현재 진행 상태예요</div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> '맛있는 치킨' 프랜차이즈(franchise_id: 3)는 '강남 지역 신규 매장 물건 요청'이라는 제목으로, 강남역 반경 1km 이내에서 신규 매장 물건을 찾아달라고 요청했습니다.</p>
+                        <p><strong>실제 예시:</strong> '맛있는 치킨' 프랜차이즈(franchise_id: 3)는 '강남 지역 신규 매장 물건 요청'이라는 제목으로, 강남 지역(region_code: '11230')에서 신규 매장 물건을 찾아달라고 요청했습니다. 담당자는 '박지민', 상태는 'pending'입니다.</p>
                     </div>
                 </div>
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    request_preferences 테이블 (요청 상세 조건) 
+                    property_request_conditions, property_request_budget 테이블 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
                     <div class="explanation">
-                        매물 요청의 상세 조건을 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary">
-                        <span class="column-name">id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">ID - 각 조건 세트를 구분하는 고유 번호예요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">request_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">property_requests.id 참조 - 어떤 요청에 대한 조건인지 연결해요</div>
+                        매물 요청의 상세 조건과 예산 정보를 저장하는 테이블입니다.
                     </div>
                     <div class="column-item">
-                        <span class="column-name">property_type</span>
-                        <span class="column-type">(VARCHAR(100))</span>
-                        <div class="column-desc">매물 유형 - 원하는 매물의 종류예요 (상가, 사무실 등)</div>
+                        <span class="column-name">property_request_conditions 테이블</span>
+                        <div class="column-desc">
+                            - <strong>id:</strong> 고유 식별자<br>
+                            - <strong>request_id:</strong> 매물 요청 ID<br>
+                            - <strong>property_type_id:</strong> 매물 유형 ID<br>
+                            - <strong>transaction_type:</strong> 거래 유형 ID<br>
+                            - <strong>area_min, area_max:</strong> 최소/최대 면적<br>
+                            - <strong>floor_min, floor_max:</strong> 최소/최대 층수
+                        </div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">min_area, max_area</span>
-                        <span class="column-type">(FLOAT)</span>
-                        <div class="column-desc">최소/최대 면적 - 원하는 매물 크기의 범위예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">min_budget, max_budget</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">예산 범위 - 사용 가능한 금액의 범위예요</div>
+                        <span class="column-name">property_request_budget 테이블</span>
+                        <div class="column-desc">
+                            - <strong>id:</strong> 고유 식별자<br>
+                            - <strong>request_id:</strong> 매물 요청 ID<br>
+                            - <strong>deposit_min, deposit_max:</strong> 최소/최대 보증금<br>
+                            - <strong>rent_min, rent_max:</strong> 최소/최대 임대료<br>
+                            - <strong>maintenance_fee_max:</strong> 최대 관리비<br>
+                            - <strong>right_price_max:</strong> 최대 권리금
+                        </div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> '맛있는 치킨'의 요청(request_id: 5)은 1층 상가, 최소 20평 이상, 월세 최대 300만원, 보증금 최대 1억원의 조건을 가지고 있습니다.</p>
+                        <p><strong>실제 예시:</strong> '맛있는 치킨'의 요청(request_id: 5)의 조건은 다음과 같아요:</p>
+                        <p>- conditions 테이블: 상가 유형(property_type_id: 1), 임대(transaction_type: 2), 최소 66㎡(area_min: 66), 1층(floor_min: 1)</p>
+                        <p>- budget 테이블: 보증금 최대 1억원(deposit_max: 100000000), 월세 최대 300만원(rent_max: 3000000)</p>
                     </div>
                 </div>
             </div>
             
             <div class="note">
                 <div class="note-title">쉽게 이해하기</div>
-                <p>🏢 properties 테이블은 <strong>판매/임대 중인 부동산</strong>의 모든 정보를 담아요.</p>
-                <p>🔍 property_requests는 프랜차이즈가 <strong>찾고 있는 매물의 조건</strong>을 담아요.</p>
-                <p>📋 request_preferences는 <strong>매물 요청의 상세 조건</strong>을 더 자세히、담아요.</p>
-                <p>이렇게 생각하세요: "강남에 치킨집 낼 매장 좀 찾아주세요"(property_requests)와 "1층, 30평, 보증금 5천 이하로요"(request_preferences)가 함께 있는 거죠!</p>
-            </div>
-        </div>
-
-        <div class="section" id="ai">
-            <h2><span class="category category-ai">AI 분석</span> AI 분석 보고서 (AI Reports) 🤖</h2>
-            <div class="explanation">
-                AI 관련 테이블들은 인공지능이 매물을 분석한 결과와 점수를 저장해요. 입지, 상권, 경쟁, 수익성 등 다양한 측면에서 평가합니다.
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    ai_reports 테이블 (AI 분석 보고서 기본 정보) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        AI 분석 보고서의 기본 정보를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary">
-                        <span class="column-name">id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">보고서 ID - 각 보고서를 구분하는 고유 번호예요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">property_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">분석 대상 매물 ID - 어떤 매물을 분석했는지 연결해요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">request_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">분석 대상 요청 ID - 어떤 요청을 분석했는지 연결해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">report_type</span>
-                        <span class="column-type">(ENUM)</span>
-                        <div class="column-desc">분석 대상 구분 - 매물 분석인지 요청 분석인지 구분해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">overall_score</span>
-                        <span class="column-type">(DECIMAL(5,2))</span>
-                        <div class="column-desc">종합 점수 - AI가 매긴 전체 평가 점수예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">summary</span>
-                        <span class="column-type">(TEXT)</span>
-                        <div class="column-desc">요약 설명 - 분석 결과를 간략히 설명한 내용이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 강남역 상가(property_id: 5)에 대한 AI 분석 보고서(id: 10)는 종합 점수 85점으로, "유동인구가 많고 상권이 활성화된 우수 입지"라고 요약되었습니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    ai_report_location 테이블 (입지 분석) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        매물 위치에 대한 AI의 입지 분석 결과를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary column-item-foreign">
-                        <span class="column-name">report_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">ai_reports.id 참조 - 어떤 보고서에 대한 분석인지 연결해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">location_score</span>
-                        <span class="column-type">(DECIMAL(5,2))</span>
-                        <div class="column-desc">입지 점수 - 위치에 대한 평가 점수예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">population_analysis</span>
-                        <span class="column-type">(JSON)</span>
-                        <div class="column-desc">시간대별 유동인구 - 주변의 시간별 유동인구 데이터예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">demographics</span>
-                        <span class="column-type">(JSON)</span>
-                        <div class="column-desc">인구 통계 - 주변 주민의 연령, 성별, 소득 데이터예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">strengths, weaknesses</span>
-                        <span class="column-type">(TEXT)</span>
-                        <div class="column-desc">장점, 단점 - 입지의 강점과 약점 분석이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 강남역 상가에 대한 입지 분석은 입지 점수 90점으로, "지하철역과 가까워 접근성 우수"라는 장점과 "주변 임대료가 높음"이라는 단점을 가지고 있습니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    ai_report_profit 테이블 (수익성 분석) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        매물의 예상 수익성에 대한 AI의 분석 결과를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary column-item-foreign">
-                        <span class="column-name">report_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">ai_reports.id 참조 - 어떤 보고서에 대한 분석인지 연결해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">profit_score</span>
-                        <span class="column-type">(DECIMAL(5,2))</span>
-                        <div class="column-desc">수익성 점수 - 예상 수익에 대한 평가 점수예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">expected_revenue_min/avg/max</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">예상 매출 - 최소/평균/최대 예상 매출액이에요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">break_even_point</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">손익분기점 - 투자금이 회수되는 예상 시점이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 강남역 상가에 치킨집을 열 경우, 수익성 점수 75점, 월 평균 매출 2천만원, 손익분기점 18개월로 예상됩니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="note">
-                <div class="note-title">쉽게 이해하기</div>
-                <p>📊 ai_reports는 <strong>AI 분석의 기본 정보와 종합 점수</strong>를 담아요.</p>
-                <p>📍 ai_report_location은 <strong>위치와 입지</strong>를 분석해요 (사람들이 얼마나 많이 지나가는지, 어떤 사람들이 사는지).</p>
-                <p>💰 ai_report_profit은 <strong>얼마나 돈을 벌 수 있을지</strong>를 예측해요.</p>
-                <p>생각해보세요: AI가 "이 위치에 치킨집을 열면 월 2천만원 매출이 예상되고, 1년 6개월이면 본전을 뽑을 수 있어요"라고 알려주는 거예요!</p>
+                <p>🏢 properties 테이블은 <strong>매물의 기본 정보</strong>(위치, 면적, 층수 등)를 담아요.</p>
+                <p>💰 property_prices는 <strong>매물의 가격 정보</strong>(보증금, 월세, 관리비 등)를 담아요.</p>
+                <p>🖼️ property_files는 <strong>매물의 사진과 파일</strong>을 담아요.</p>
+                <p>🔍 property_requests는 <strong>프랜차이즈가 찾는 매물 조건</strong>을 담아요.</p>
+                <p>🎯 conditions와 budget은 <strong>요청의 상세 조건과 예산</strong>을 담아요.</p>
             </div>
         </div>
 
         <div class="section" id="contracts">
             <h2><span class="category category-contracts">계약</span> 계약 정보 (Contracts) 📝</h2>
             <div class="explanation">
-                계약 관련 테이블들은 부동산 거래 계약에 관한 모든 정보를 저장해요. 계약 당사자, 조건, 계약서 등을 관리합니다.
+                계약 관련 테이블들은 부동산 거래 계약에 관한 모든 정보를 저장해요. 계약 유형, 조건, 파일, 상태 변경 내역 등을 관리합니다.
+            </div>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    contract_types 테이블 (계약 유형) 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        다양한 계약 유형 정보를 저장하는 테이블입니다.
+                    </div>
+                    <div class="column-item column-item-primary">
+                        <span class="column-name">id</span>
+                        <span class="column-type">(INT)</span>
+                        <div class="column-desc">고유 식별자 - 각 계약 유형을 구분하는 고유 번호예요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">contract_type</span>
+                        <span class="column-type">(VARCHAR(50))</span>
+                        <div class="column-desc">계약 유형 - 임대차, 매매, 프랜차이즈 계약 등의 유형이에요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">description</span>
+                        <span class="column-type">(TEXT)</span>
+                        <div class="column-desc">설명 - 계약 유형에 대한 설명이에요</div>
+                    </div>
+                    <div class="example">
+                        <p><strong>실제 예시:</strong> id가 1인 계약 유형은 "commercial_lease"(상가 임대차 계약), id가 2인 계약 유형은 "franchise_agreement"(프랜차이즈 계약)입니다.</p>
+                    </div>
+                </div>
             </div>
             
             <div class="accordion">
@@ -919,175 +861,129 @@
                         <span class="column-type">(INT)</span>
                         <div class="column-desc">대상 매물 - 계약 대상인 매물을 연결해요</div>
                     </div>
-                    <div class="column-item">
-                        <span class="column-name">type</span>
-                        <span class="column-type">(ENUM)</span>
-                        <div class="column-desc">계약 유형 - 임대, 매매, 프랜차이즈 계약 중 하나예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">start_date, end_date</span>
-                        <span class="column-type">(DATE)</span>
-                        <div class="column-desc">계약 시작일과 종료일 - 계약 기간을 나타내요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">deposit, monthly_rent</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">보증금과 월세 - 임대 조건이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 강남역 상가(property_id: 5)에 대한 임대 계약(id: 7)은 2023년 1월 1일부터 2025년 12월 31일까지, 보증금 5천만원, 월세 200만원의 조건을 가집니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    contract_parties 테이블 (계약 당사자) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        계약에 참여하는 당사자들의 정보를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary column-item-foreign">
-                        <span class="column-name">contract_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">계약 ID - 어떤 계약인지 연결해요</div>
-                    </div>
                     <div class="column-item column-item-foreign">
                         <span class="column-name">franchise_id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">프랜차이즈 사용자 ID - 계약에 참여한 프랜차이즈 담당자를 연결해요</div>
+                        <div class="column-desc">프랜차이즈 ID - 계약의 프랜차이즈 당사자예요</div>
                     </div>
                     <div class="column-item column-item-foreign">
                         <span class="column-name">agent_id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">부동산 사용자 ID - 계약에 참여한 부동산 중개인을 연결해요</div>
+                        <div class="column-desc">부동산 중개사 ID - 계약을 중개한 부동산 중개사예요</div>
                     </div>
                     <div class="column-item column-item-foreign">
-                        <span class="column-name">owner_id</span>
+                        <span class="column-name">contract_type_id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">예비 점주 사용자 ID - 계약에 참여한 예비 점주를 연결해요</div>
+                        <div class="column-desc">계약 유형 ID - 어떤 유형의 계약인지 연결해요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">signed_at</span>
+                        <span class="column-type">(TIMESTAMP)</span>
+                        <div class="column-desc">계약 체결 시간 - 계약이 체결된 날짜와 시간이에요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">status</span>
+                        <span class="column-type">(VARCHAR(20))</span>
+                        <div class="column-desc">상태 - 계약의 현재 상태(draft, in_progress, completed, cancelled)예요</div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> 계약 7번에는 '맛있는 치킨' 프랜차이즈 담당자(franchise_id: 3), 김철수 부동산 중개사(agent_id: 1), 이영희 예비 점주(owner_id: 2)가 참여했습니다.</p>
+                        <p><strong>실제 예시:</strong> 강남역 상가(property_id: 5)에 대한 계약(id: 7)은 '맛있는 치킨'(franchise_id: 3)과 김철수 부동산(agent_id: 1) 사이에 체결된 '상가 임대차 계약'(contract_type_id: 1)으로, 상태는 'completed'입니다.</p>
                     </div>
                 </div>
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    contract_documents 테이블 (계약 문서) 
+                    contract_terms 테이블 (계약 조건) 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
                     <div class="explanation">
-                        계약서 등 계약 관련 문서를 저장하는 테이블입니다.
+                        계약의 금액 관련 조건을 저장하는 테이블입니다.
                     </div>
                     <div class="column-item column-item-primary">
                         <span class="column-name">id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">문서 ID - 각 문서를 구분하는 고유 번호예요</div>
+                        <div class="column-desc">고유 식별자 - 각 계약 조건을 구분하는 고유 번호예요</div>
                     </div>
                     <div class="column-item column-item-foreign">
                         <span class="column-name">contract_id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">계약 ID - 어떤 계약의 문서인지 연결해요</div>
+                        <div class="column-desc">계약 ID - 어떤 계약의 조건인지 연결해요</div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">document_url</span>
-                        <span class="column-type">(VARCHAR(1000))</span>
-                        <div class="column-desc">계약서 PDF URL - 계약서 파일이 저장된 위치예요</div>
+                        <span class="column-name">field_name</span>
+                        <span class="column-type">(VARCHAR(50))</span>
+                        <div class="column-desc">항목 이름 - 보증금, 월세 등 어떤 항목인지 구분해요</div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">value</span>
+                        <span class="column-type">(DECIMAL(15,2))</span>
+                        <div class="column-desc">금액 - 실제 금액 값이에요</div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> 계약 7번의 계약서는 "contracts/7/lease_agreement.pdf"에 저장되어 있습니다.</p>
+                        <p><strong>실제 예시:</strong> 계약 7번(contract_id: 7)의 조건들은 다음과 같아요:</p>
+                        <p>1. field_name: "deposit", value: 50000000 (보증금 5천만원)</p>
+                        <p>2. field_name: "monthly_rent", value: 2000000 (월세 200만원)</p>
+                        <p>3. field_name: "contract_period", value: 24 (계약기간 24개월)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    contract_files, contract_status_logs 테이블 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        계약 관련 파일과 상태 변경 내역을 저장하는 테이블입니다.
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">contract_files 테이블</span>
+                        <div class="column-desc">
+                            - <strong>id:</strong> 고유 식별자<br>
+                            - <strong>contract_id:</strong> 계약 ID<br>
+                            - <strong>file_path:</strong> 파일 경로<br>
+                            - <strong>file_type:</strong> 파일 유형 (계약서, 첨부자료 등)<br>
+                            - <strong>file_name:</strong> 파일명<br>
+                            - <strong>uploaded_at:</strong> 업로드 시간
+                        </div>
+                    </div>
+                    <div class="column-item">
+                        <span class="column-name">contract_status_logs 테이블</span>
+                        <div class="column-desc">
+                            - <strong>id:</strong> 고유 식별자<br>
+                            - <strong>contract_id:</strong> 계약 ID<br>
+                            - <strong>status_before:</strong> 이전 상태<br>
+                            - <strong>status_after:</strong> 변경된 상태<br>
+                            - <strong>changed_by_user_id:</strong> 변경한 사용자 ID<br>
+                            - <strong>changed_at:</strong> 변경 시간<br>
+                            - <strong>note:</strong> 메모
+                        </div>
+                    </div>
+                    <div class="example">
+                        <p><strong>실제 예시:</strong></p>
+                        <p>1. 계약 7번에는 "계약서.pdf", "부동산 감정서.pdf" 등의 파일이 저장되어 있어요</p>
+                        <p>2. 계약 7번의 상태는 'draft'에서 'in_progress'로, 다시 'completed'로 변경되었으며 각각의 변경 내역이 logs 테이블에 기록되어 있어요</p>
                     </div>
                 </div>
             </div>
             
             <div class="note">
                 <div class="note-title">쉽게 이해하기</div>
-                <p>📄 contracts는 <strong>계약의 기본 정보</strong>(기간, 금액 등)를 담아요.</p>
-                <p>👥 contract_parties는 <strong>계약에 참여한 사람들</strong>을 담아요.</p>
-                <p>📑 contract_documents는 <strong>계약서 파일</strong>의 위치를 저장해요.</p>
-                <p>생각해보세요: 부동산 사무실에서 계약서를 작성할 때, 계약 내용, 참여자, 실제 서류를 모두 정리해두는 것과 같아요!</p>
+                <p>📄 contract_types는 <strong>계약의 유형</strong>을 정의해요.</p>
+                <p>📑 contracts는 <strong>계약의 기본 정보</strong>를 담아요.</p>
+                <p>💰 contract_terms는 <strong>계약의 금액 조건</strong>을 저장해요.</p>
+                <p>📎 contract_files는 <strong>계약 관련 문서</strong>를 관리해요.</p>
+                <p>📝 contract_status_logs는 <strong>계약 상태 변경 내역</strong>을 기록해요.</p>
             </div>
         </div>
 
-        <div class="section" id="communication">
-            <h2><span class="category category-communication">커뮤니케이션</span> 소통 기록 (Communication) 💬</h2>
+        <div class="section" id="others">
+            <h2><span class="category category-others">기타</span> 기타 정보 (Others) 🔍</h2>
             <div class="explanation">
-                소통 관련 테이블들은 사용자들 간의 메시지와 알림 정보를 저장해요. 모든 대화 내용과 시스템 알림을 관리합니다.
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    chat_rooms 테이블 (채팅방) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        사용자들이 대화하는 채팅방 정보를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary">
-                        <span class="column-name">id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">채팅방 ID - 각 채팅방을 구분하는 고유 번호예요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">created_by</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">생성자 ID - 채팅방을 만든 사용자를 가리켜요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">created_at</span>
-                        <span class="column-type">(DATETIME)</span>
-                        <div class="column-desc">생성일시 - 채팅방이 만들어진 날짜와 시간이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 김철수 부동산 중개사(created_by: 1)가 이영희 예비 점주와 대화하기 위해 채팅방(id: 3)을 2023년 5월 10일에 만들었습니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    messages 테이블 (메시지) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        채팅방에서 주고받은 메시지를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary">
-                        <span class="column-name">id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">메시지 ID - 각 메시지를 구분하는 고유 번호예요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">chat_room_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">채팅방 ID - 어떤 채팅방의 메시지인지 연결해요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">sender_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">보낸 사람 ID - 메시지를 보낸 사용자를 가리켜요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">message</span>
-                        <span class="column-type">(TEXT)</span>
-                        <div class="column-desc">텍스트 메시지 - 보낸 메시지 내용이에요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">sent_at</span>
-                        <span class="column-type">(DATETIME)</span>
-                        <div class="column-desc">전송 시간 - 메시지가 보내진 날짜와 시간이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 김철수(sender_id: 1)가 채팅방 3에 "안녕하세요, 문의하신 강남역 매물 보내드립니다"라는 메시지를 2023년 5월 10일 오후 2시에 보냈습니다.</p>
-                    </div>
-                </div>
+                기타 기능을 위한 테이블로, 알림 정보를 저장합니다.
             </div>
             
             <div class="accordion">
@@ -1111,8 +1007,8 @@
                     </div>
                     <div class="column-item">
                         <span class="column-name">type</span>
-                        <span class="column-type">(ENUM)</span>
-                        <div class="column-desc">알림 유형 - 메시지, 매물, 요청, 계약, 시스템 중 하나예요</div>
+                        <span class="column-type">(VARCHAR(50))</span>
+                        <div class="column-desc">알림 유형 - 메시지, 매물, 계약 등 알림의 종류예요</div>
                     </div>
                     <div class="column-item">
                         <span class="column-name">message</span>
@@ -1121,146 +1017,23 @@
                     </div>
                     <div class="column-item">
                         <span class="column-name">is_read</span>
-                        <span class="column-type">(BOOLEAN)</span>
+                        <span class="column-type">(TINYINT(1))</span>
                         <div class="column-desc">읽음 여부 - 사용자가 알림을 확인했는지 여부예요</div>
                     </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> 이영희(user_id: 2)에게 "새로운 메시지가 도착했습니다" 알림이 전송되었고, 아직 읽지 않은 상태입니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="note">
-                <div class="note-title">쉽게 이해하기</div>
-                <p>👨‍👩‍👧 chat_rooms는 <strong>대화방</strong>을 나타내요 (카카오톡 채팅방처럼).</p>
-                <p>💬 messages는 채팅방에서 주고받은 <strong>메시지</strong>를 저장해요.</p>
-                <p>🔔 notifications는 사용자에게 전송되는 <strong>알림</strong>을 저장해요.</p>
-                <p>생각해보세요: 카카오톡이나 문자 메시지 앱처럼, 누구와 대화했는지, 어떤 내용을 주고받았는지, 어떤 알림이 왔는지를 기록하는 거예요!</p>
-            </div>
-        </div>
-
-        <div class="section" id="others">
-            <h2><span class="category category-others">기타</span> 기타 정보 (Others) 🔍</h2>
-            <div class="explanation">
-                기타 테이블들은 시스템 운영에 필요한 보조 정보들을 저장해요. 활동 기록, 프랜차이즈 정보, 지역 정보 등을 관리합니다.
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    activity_logs 테이블 (활동 기록) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        사용자들의 모든 활동 기록을 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary">
-                        <span class="column-name">id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">로그 ID - 각 활동 기록을 구분하는 고유 번호예요</div>
-                    </div>
-                    <div class="column-item column-item-foreign">
-                        <span class="column-name">user_id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">사용자 ID - 활동을 한 사용자를 가리켜요</div>
+                    <div class="column-item">
+                        <span class="column-name">related_entity_type</span>
+                        <span class="column-type">(VARCHAR(50))</span>
+                        <div class="column-desc">관련 엔티티 유형 - 알림이 관련된 데이터 유형(계약, 매물 등)이에요</div>
                     </div>
                     <div class="column-item">
-                        <span class="column-name">action</span>
-                        <span class="column-type">(VARCHAR(255))</span>
-                        <div class="column-desc">동작 이름 - 어떤 활동을 했는지 설명해요 (예: '매물 등록')</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">target_table</span>
-                        <span class="column-type">(VARCHAR(100))</span>
-                        <div class="column-desc">대상 테이블명 - 어떤 테이블에 변경이 있었는지 기록해요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">target_id</span>
+                        <span class="column-name">related_entity_id</span>
                         <span class="column-type">(INT)</span>
-                        <div class="column-desc">대상 ID - 변경된 데이터의 ID를 기록해요</div>
+                        <div class="column-desc">관련 엔티티 ID - 알림이 관련된 데이터의 ID예요</div>
                     </div>
                     <div class="example">
-                        <p><strong>실제 예시:</strong> 김철수(user_id: 1)가 2023년 6월 1일에 '새 매물 등록' 활동을 했고, properties 테이블의 ID 5번 데이터를 추가했습니다.</p>
+                        <p><strong>실제 예시:</strong> 김철수(user_id: 1)에게 "새로운 매물 요청이 도착했습니다"라는 메시지의 알림이 전송되었고, 이는 매물 요청(related_entity_type: 'property_request', related_entity_id: 5)에 관한 것이며, 아직 읽지 않은(is_read: 0) 상태입니다.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    franchises 테이블 (프랜차이즈 정보) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        프랜차이즈 브랜드에 대한 정보를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary">
-                        <span class="column-name">id</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">프랜차이즈 ID - 각 프랜차이즈를 구분하는 고유 번호예요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">name</span>
-                        <span class="column-type">(VARCHAR(255))</span>
-                        <div class="column-desc">프랜차이즈 이름 - 브랜드명이에요</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">industry_category</span>
-                        <span class="column-type">(VARCHAR(100))</span>
-                        <div class="column-desc">업종 분류 - 어떤 종류의 사업인지 구분해요 (예: 음식점, 카페, 편의점)</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">avg_revenue</span>
-                        <span class="column-type">(INT)</span>
-                        <div class="column-desc">평균 매출 - 해당 프랜차이즈의 평균적인 매장 매출이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> '맛있는 치킨'(id: 3)은 '치킨' 업종에 속하며, 평균 매출은 월 2500만원입니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    regions 테이블 (지역 정보) 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        행정 지역 구분에 대한 정보를 저장하는 테이블입니다.
-                    </div>
-                    <div class="column-item column-item-primary">
-                        <span class="column-name">id</span>
-                        <span class="column-type">(VARCHAR(10))</span>
-                        <div class="column-desc">행정 코드 - 각 지역을 구분하는 고유 번호예요 (예: 11110)</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">name</span>
-                        <span class="column-type">(VARCHAR(255))</span>
-                        <div class="column-desc">행정동 이름 - 지역 이름이에요 (예: 강남구)</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">parent_id</span>
-                        <span class="column-type">(VARCHAR(10))</span>
-                        <div class="column-desc">상위 지역 ID - 속한 상위 지역을 가리켜요 (예: 서울시)</div>
-                    </div>
-                    <div class="column-item">
-                        <span class="column-name">region_type</span>
-                        <span class="column-type">(ENUM)</span>
-                        <div class="column-desc">지역 구분 - 시/도, 시/군/구, 읍/면/동 구분이에요</div>
-                    </div>
-                    <div class="example">
-                        <p><strong>실제 예시:</strong> '강남구'(id: 11230)는 '서울특별시'(parent_id: 11000)에 속하는 '구'(district) 단위 지역입니다.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="note">
-                <div class="note-title">쉽게 이해하기</div>
-                <p>📝 activity_logs는 <strong>모든 활동 내역</strong>을 기록해요 (누가, 언제, 무엇을 했는지).</p>
-                <p>🏪 franchises는 <strong>프랜차이즈 브랜드 정보</strong>를 저장해요.</p>
-                <p>🗺️ regions는 <strong>지역 정보</strong>를 저장해요 (행정구역 분류).</p>
-                <p>이런 테이블들은 다른 주요 정보들을 더 잘 관리하고 검색하기 위한 보조 정보들이에요!</p>
             </div>
         </div>
 
@@ -1275,154 +1048,108 @@
             </div>
             
             <div class="example">
-                <p><strong>관계의 종류:</strong></p>
-                <p>1. <strong>일대일(1:1) 관계</strong>: 한 테이블의 하나의 행이 다른 테이블의 정확히 하나의 행과 연결됩니다.</p>
-                <p>예: 각 agent_profiles는 정확히 하나의 users 행과 연결됩니다.</p>
-                <p>2. <strong>일대다(1:N) 관계</strong>: 한 테이블의 하나의 행이 다른 테이블의 여러 행과 연결됩니다.</p>
-                <p>예: 한 명의 부동산 중개인(users)은 여러 개의 매물(properties)을 등록할 수 있습니다.</p>
-                <p>3. <strong>다대다(N:M) 관계</strong>: 두 테이블 사이에 중간 테이블을 두어 여러 행들이 서로 연결됩니다.</p>
+                <p><strong>주요 관계:</strong></p>
+                <p>1. <strong>사용자와 역할:</strong> users 테이블의 role_id는 user_roles 테이블의 id를 참조해 어떤 역할인지 알려줘요.</p>
+                <p>2. <strong>사용자와 프로필:</strong> user_profiles, agents, franchises, owners 테이블은 모두 users 테이블의 id를 참조해 특정 사용자를 가리켜요.</p>
+                <p>3. <strong>매물과 등록자:</strong> properties 테이블의 agent_id는 agents 테이블의 id를 참조해 어떤 중개사가 등록했는지 알려줘요.</p>
+                <p>4. <strong>매물과 가격:</strong> property_prices 테이블의 property_id는 properties 테이블의 id를 참조해 어떤 매물의 가격인지 알려줘요.</p>
+                <p>5. <strong>계약과 관련자:</strong> contracts 테이블은 property_id, franchise_id, agent_id를 통해 각 테이블과 연결돼요.</p>
             </div>
             
             <div class="tip">
                 <div class="tip-title">핵심 관계 이해하기</div>
-                <p>1. <strong>users ↔ profiles</strong>: 각 사용자는 하나의 프로필(프랜차이즈, 부동산, 점주)을 가집니다.</p>
-                <p>2. <strong>agents ↔ properties</strong>: 부동산 중개인은 여러 매물을 등록할 수 있습니다.</p>
-                <p>3. <strong>franchise ↔ property_requests</strong>: 프랜차이즈는 여러 매물 요청을 할 수 있습니다.</p>
-                <p>4. <strong>properties/requests ↔ ai_reports</strong>: 매물이나 요청에 대해 AI 분석 보고서가 생성됩니다.</p>
-                <p>5. <strong>properties ↔ contracts</strong>: 매물에 대해 계약이 체결됩니다.</p>
-                <p>6. <strong>users ↔ messages</strong>: 사용자들은 서로 메시지를 주고받습니다.</p>
+                <p>이 데이터베이스의 핵심 흐름은 다음과 같아요:</p>
+                <p>1. 부동산 중개사(agents)가 매물(properties)을 등록해요.</p>
+                <p>2. 프랜차이즈(franchises)가 매물 요청(property_requests)을 등록해요.</p>
+                <p>3. 중개사와 프랜차이즈가 적합한 매물에 대해 계약(contracts)을 체결해요.</p>
+                <p>4. 계약 조건(contract_terms)과 문서(contract_files)가 저장돼요.</p>
+                <p>5. 모든 과정에서 사용자들은 알림(notifications)을 받아요.</p>
             </div>
         </div>
 
         <div class="section" id="examples">
             <h2>실생활 예시로 이해하기 📝</h2>
             <div class="explanation">
-                이제 실제 예시를 통해 이 모든 테이블이 어떻게 함께 작동하는지 살펴볼까요?
+                새로운 DB 구조를 실제 사례를 통해 이해해 봅시다.
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    예시 1: 치킨 프랜차이즈 매장 찾기 
+                    예시 1: 부동산 중개사의 매물 등록 과정 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
                     <div class="explanation">
-                        '맛있는 치킨' 프랜차이즈가 새 매장을 찾는 과정을 데이터베이스 관점에서 살펴봅시다.
+                        부동산 중개사가 새 매물을 등록하는 과정을 살펴봅시다.
                     </div>
                     <ol>
-                        <li>'맛있는 치킨' 프랜차이즈 담당자 박지민씨는 <strong>users</strong> 테이블에 ID 3번으로 등록되어 있습니다.</li>
-                        <li>그의 프로필 정보는 <strong>franchise_profiles</strong> 테이블에 저장되어 있어요.</li>
-                        <li>박지민씨는 강남역 근처에 매장을 열고 싶어 <strong>property_requests</strong> 테이블에 새 요청을 등록했어요.</li>
-                        <li>원하는 상세 조건(1층, 30평 이상 등)은 <strong>request_preferences</strong> 테이블에 저장되었어요.</li>
-                        <li>요청을 본 부동산 중개인 김철수씨(<strong>agent_profiles</strong>)가 적합한 매물을 <strong>properties</strong> 테이블에서 찾아요.</li>
-                        <li>AI가 해당 매물을 분석하여 <strong>ai_reports</strong>와 관련 분석 테이블에 결과를 저장해요.</li>
-                        <li>김철수씨는 박지민씨에게 <strong>chat_rooms</strong>과 <strong>messages</strong>를 통해 매물 정보를 전달해요.</li>
-                        <li>박지민씨가 매물이 마음에 들면, <strong>contracts</strong> 테이블에 새 계약이 생성되고 <strong>contract_parties</strong>에 관련자들이 연결돼요.</li>
-                        <li>모든 과정은 <strong>activity_logs</strong>에 기록됩니다.</li>
+                        <li>김철수씨는 <strong>users</strong> 테이블에 id: 1, email: "kim@example.com", role_id: 2(부동산 중개사)로 등록되어 있어요.</li>
+                        <li>그의 기본 정보는 <strong>user_profiles</strong> 테이블에 name: "김철수", phone_number: "010-1234-5678"로 저장되어 있어요.</li>
+                        <li>부동산 중개사 정보는 <strong>agents</strong> 테이블에 agency_name: "행복한 부동산", license_number: (암호화된 "서울12345")로 저장돼요.</li>
+                        <li>김철수씨가 강남역 상가 매물을 <strong>properties</strong> 테이블에 등록해요 (title: "강남역 1분 거리 신축 상가", address: "서울시 강남구 강남대로 123" 등).</li>
+                        <li>매물의 가격 정보는 <strong>property_prices</strong> 테이블에 여러 행으로 저장돼요 (보증금 5천만원, 월세 200만원, 관리비 50만원 등).</li>
+                        <li>매물 사진들은 <strong>property_files</strong> 테이블에 저장되고, 대표 이미지는 is_primary: 1로 표시돼요.</li>
+                        <li>"맛있는 치킨" 프랜차이즈가 <strong>property_requests</strong> 테이블에 등록한 요청 조건과 매칭되면, 김철수씨에게 <strong>notifications</strong> 테이블을 통해 알림이 가요.</li>
+                        <li>프랜차이즈와 협의가 완료되면 <strong>contracts</strong> 테이블에 새 계약이 생성되고, contract_type_id: 1(상가 임대차 계약)으로 설정돼요.</li>
+                        <li>계약 조건은 <strong>contract_terms</strong> 테이블에 저장되고, 계약서 파일은 <strong>contract_files</strong> 테이블에 저장돼요.</li>
+                        <li>계약이 완료되면 status가 'completed'로 변경되고, 이 변경 내역은 <strong>contract_status_logs</strong> 테이블에 기록돼요.</li>
                     </ol>
                 </div>
             </div>
             
             <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    예시 2: 예비 점주의 매장 찾기 
+                    예시 2: 프랜차이즈의 매물 요청 과정 
                     <span>▼</span>
                 </div>
                 <div class="accordion-content">
                     <div class="explanation">
-                        카페를 열고 싶은 예비 점주가 적합한 매장과 프랜차이즈를 찾는 과정을 살펴봅시다.
+                        프랜차이즈 회사가 특정 조건의 매물을 요청하는 과정을 살펴봅시다.
                     </div>
                     <ol>
-                        <li>이영희씨는 카페 창업을 희망하는 예비 점주로 <strong>users</strong> 테이블에 ID 2번으로 등록되어 있어요.</li>
-                        <li>그녀의 관심사는 <strong>owner_profiles</strong> 테이블에 "카페, 강남, 5천만원 예산"으로 저장되어 있어요.</li>
-                        <li>부동산 중개인 김철수씨는 <strong>properties</strong> 테이블에서 적합한 매물을 찾아 이영희씨에게 제안해요.</li>
-                        <li>이영희씨는 해당 매물의 <strong>ai_reports</strong>를 통해 입지와 예상 수익성을 확인해요.</li>
-                        <li>동시에 <strong>franchises</strong> 테이블에서 적합한 카페 프랜차이즈를 찾아봐요.</li>
-                        <li>이영희씨, 김철수씨, 카페 프랜차이즈 담당자는 <strong>chat_rooms</strong>을 통해 소통해요.</li>
-                        <li>모든 조건이 맞으면 <strong>contracts</strong>에 임대 계약이 생성되고, 이어서 프랜차이즈 계약도 생성돼요.</li>
-                        <li>계약 관련 문서는 <strong>contract_documents</strong>에 저장돼요.</li>
-                        <li>이영희씨는 <strong>notifications</strong>를 통해 진행 상황 알림을 받아요.</li>
+                        <li>박지민씨는 <strong>users</strong> 테이블에 id: 3, email: "park@example.com", role_id: 1(프랜차이즈)로 등록되어 있어요.</li>
+                        <li>그의 기본 정보는 <strong>user_profiles</strong> 테이블에, 회사 정보는 <strong>franchises</strong> 테이블에 저장되어 있어요.</li>
+                        <li>박지민씨는 <strong>property_requests</strong> 테이블에 새 요청을 등록해요 (title: "강남 지역 신규 매장 물건 요청", region_code: "11230", status: "pending").</li>
+                        <li>요청의 상세 조건은 <strong>property_request_conditions</strong> 테이블에 저장돼요 (property_type_id: 1(상가), area_min: 66, floor_min: 1 등).</li>
+                        <li>예산 정보는 <strong>property_request_budget</strong> 테이블에 저장돼요 (deposit_max: 100000000, rent_max: 3000000 등).</li>
+                        <li>요청이 등록되면 지역 내 부동산 중개사들에게 <strong>notifications</strong> 테이블을 통해 알림이 가요.</li>
+                        <li>김철수 중개사가 조건에 맞는 매물을 제안하면, 박지민씨는 매물을 검토해요.</li>
+                        <li>매물이 마음에 들면 <strong>contracts</strong> 테이블에 새 계약이 생성되고, 계약 과정이 시작돼요.</li>
+                        <li>계약 진행 상태는 <strong>contract_status_logs</strong> 테이블에 기록되어 모든 변경 내역을 추적할 수 있어요.</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    예시 3: 계약 체결 과정 
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="explanation">
+                        부동산 중개사와 프랜차이즈 사이의 계약 체결 과정을 살펴봅시다.
+                    </div>
+                    <ol>
+                        <li>김철수 중개사(agent_id: 1)가 등록한 강남역 상가(property_id: 5)에 대해 박지민(franchise_id: 3)이 관심을 보여요.</li>
+                        <li>두 사람이 계약 조건에 합의하면, <strong>contracts</strong> 테이블에 새 계약이 생성돼요 (id: 7, property_id: 5, franchise_id: 3, agent_id: 1, contract_type_id: 1, status: "draft").</li>
+                        <li>계약의 금액 조건들은 <strong>contract_terms</strong> 테이블에 저장돼요 (보증금, 월세, 계약 기간 등).</li>
+                        <li>계약서가 작성되면 <strong>contract_files</strong> 테이블에 파일이 업로드돼요.</li>
+                        <li>김철수씨가 계약에 서명하면 is_signed_by_agent가 1로 변경되고, 박지민씨가 서명하면 is_signed_by_franchise가 1로 변경돼요.</li>
+                        <li>모든 서명이 완료되면 status가 'completed'로 변경되고, 이 변경 내역은 <strong>contract_status_logs</strong> 테이블에 기록돼요.</li>
+                        <li>계약 체결이 완료되면 양측에게 <strong>notifications</strong> 테이블을 통해 알림이 전송돼요.</li>
+                        <li>매물의 상태도 'sold' 또는 'pending'으로 <strong>properties</strong> 테이블에서 업데이트 돼요.</li>
                     </ol>
                 </div>
             </div>
             
             <div class="tip">
-                <div class="tip-title">핵심 포인트</div>
-                <p>데이터베이스는 마치 퍼즐처럼 모든 정보가 서로 연결되어 있어요!</p>
-                <p>하나의 정보(예: 사용자)는 여러 다른 정보(매물, 메시지, 계약 등)와 연결됩니다.</p>
-                <p>이런 연결 관계 덕분에 "강남에 있는 김철수 중개사가 등록한 모든 매물"과 같은 복잡한 정보도 쉽게 찾을 수 있어요.</p>
-            </div>
-
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    예시 3: 부동산 중개인의 매물 등록 및 매칭 과정 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        부동산 중개인이 매물을 등록하고 프랜차이즈 요청과 매칭하는 과정을 살펴봅시다.
-                    </div>
-                    <ol>
-                        <li>김철수씨는 부동산 중개인으로 <strong>users</strong> 테이블에 ID 1번으로 등록되어 있어요.</li>
-                        <li>그의 중개사 정보는 <strong>agent_profiles</strong> 테이블에 "행복한 부동산", 면허번호 "서울12345"로 저장되어 있어요.</li>
-                        <li>김철수씨는 새로운 상가 매물을 <strong>properties</strong> 테이블에 등록해요 (강남역 1분 거리, 30평, 보증금 5천만원 등).</li>
-                        <li>등록된 매물에 대해 <strong>ai_reports</strong> 분석을 요청하고, 해당 매물이 어떤 업종에 적합한지 확인해요.</li>
-                        <li>분석 결과는 <strong>ai_report_location</strong>, <strong>ai_report_market</strong>, <strong>ai_report_profit</strong> 등의 테이블에 저장돼요.</li>
-                        <li>김철수씨는 <strong>property_requests</strong> 테이블에서 '맛있는 치킨' 프랜차이즈가 요청한 매물 조건을 확인해요.</li>
-                        <li>조건이 맞는 것 같아 <strong>chat_rooms</strong>을 통해 프랜차이즈 담당자에게 메시지를 보내요.</li>
-                        <li>매물 정보와 AI 보고서를 <strong>messages</strong> 테이블에 첨부파일로 공유해요.</li>
-                        <li>프랜차이즈가 관심을 보이면, 예비 점주도 찾아 <strong>contract_parties</strong> 테이블에 모든 관계자를 연결해요.</li>
-                        <li>계약이 완료되면 <strong>activity_logs</strong> 테이블에 "매물 계약 완료" 활동이 기록돼요.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    예시 4: 부동산 중개인의 프랜차이즈 매물 요청 대응 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        부동산 중개인이 프랜차이즈의 매물 요청에 대응하는 과정을 살펴봅시다.
-                    </div>
-                    <ol>
-                        <li>김철수씨는 <strong>notifications</strong> 테이블을 통해 새로운 매물 요청 알림을 받았어요.</li>
-                        <li><strong>property_requests</strong> 테이블에서 '맛있는 치킨' 프랜차이즈가 강남역 인근 1층 상가를 찾는다는 요청을 확인해요.</li>
-                        <li><strong>request_preferences</strong> 테이블에서 상세 조건(30평 이상, 보증금 1억 이하 등)을 확인해요.</li>
-                        <li>김철수씨는 <strong>properties</strong> 테이블에서 조건에 맞는 매물들을 필터링해요.</li>
-                        <li>적합한 매물 3개를 찾아 <strong>ai_reports</strong>를 확인하고 치킨집에 적합한지 분석해요.</li>
-                        <li><strong>ai_report_competition</strong> 테이블에서 주변 경쟁 업체 정보를 확인해요.</li>
-                        <li>박지민 프랜차이즈 담당자에게 <strong>chat_rooms</strong>을 통해 연락해요.</li>
-                        <li>매물 정보와 AI 분석 자료를 <strong>attachments</strong> 테이블을 통해 메시지에 첨부해요.</li>
-                        <li>관심을 보이는 매물에 대해 현장 방문 일정을 잡고 <strong>activity_logs</strong>에 기록해요.</li>
-                        <li>계약이 성사되면 <strong>contracts</strong> 테이블에 새 계약이 추가되고, 김철수씨는 중개 수수료를 받아요.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="accordion">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    예시 5: 부동산 중개인의 데이터 기반 매물 관리 
-                    <span>▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="explanation">
-                        부동산 중개인이 데이터를 활용해 매물을 전략적으로 관리하는 과정을 살펴봅시다.
-                    </div>
-                    <ol>
-                        <li>김철수씨는 자신이 등록한 모든 매물을 <strong>properties</strong> 테이블에서 확인해요 (agent_id = 1).</li>
-                        <li>각 매물별 <strong>ai_reports</strong> 데이터를 분석해 어떤 매물이 가장 인기있는지 파악해요.</li>
-                        <li><strong>activity_logs</strong> 테이블에서 사용자들이 어떤 매물에 관심을 보이는지 확인해요.</li>
-                        <li><strong>franchises</strong> 테이블에서 최근 확장 중인 프랜차이즈 브랜드를 찾아요.</li>
-                        <li>해당 브랜드에 적합한 매물을 <strong>ai_report_market</strong> 데이터를 바탕으로 선별해요.</li>
-                        <li>선별된 매물을 <strong>property_requests</strong>와 매칭해 타겟 프랜차이즈에 <strong>messages</strong>로 제안해요.</li>
-                        <li>지속적으로 <strong>regions</strong> 테이블의 지역 정보를 분석해 유망 지역의 매물을 우선적으로 확보해요.</li>
-                        <li>성공적인 계약 패턴을 <strong>contracts</strong> 테이블에서 분석해 비슷한 조건의 매물을 더 확보해요.</li>
-                        <li>모든 커뮤니케이션 기록은 <strong>messages</strong> 테이블에 저장되어 클라이언트와의 관계를 유지하는 데 활용해요.</li>
-                        <li>이렇게 데이터 기반으로, 김철수씨는 더 효율적인 매물 중개가 가능해져요!</li>
-                    </ol>
-                </div>
+                <div class="tip-title">새 DB 구조의 장점</div>
+                <p>이 새로운 DB 구조는 이전보다 더 체계적이고 유연해요!</p>
+                <p>1. <strong>역할 기반 설계:</strong> 사용자의 역할이 명확하게 분리되어 있어요.</p>
+                <p>2. <strong>유연한 가격 구조:</strong> 각 매물은 다양한 가격 항목을 유연하게 가질 수 있어요.</p>
+                <p>3. <strong>계약 과정 추적:</strong> 계약의 모든 변경 사항이 기록되어 투명하게 관리돼요.</p>
+                <p>4. <strong>파일 관리:</strong> 매물과 계약 관련 파일이 체계적으로 관리돼요.</p>
+                <p>5. <strong>알림 시스템:</strong> 다양한 이벤트에 대한 알림을 효과적으로 전달할 수 있어요.</p>
             </div>
         </div>
 
