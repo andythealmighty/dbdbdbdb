@@ -443,6 +443,9 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'user_roles', column: 'role_id' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['email'], name: 'idx_users_email' }
                 ]
             },
             user_profiles: {
@@ -461,6 +464,9 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['phone_number'], name: 'idx_user_profiles_phone' }
                 ]
             },
             agents: {
@@ -510,6 +516,9 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ],
+                constraints: [
+                    { type: 'unique', columns: ['user_id', 'permission_key'], name: 'unique_user_permission' }
                 ]
             },
 
@@ -541,6 +550,9 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'sales_type', column: 'sales_type_id' }
+                ],
+                constraints: [
+                    { type: 'unique', columns: ['sales_type_id', 'field_name'], name: 'unique_sales_type_field' }
                 ]
             },
             properties: {
@@ -568,6 +580,14 @@
                     { type: 'foreign_key', target: 'agents', column: 'agent_id' },
                     { type: 'foreign_key', target: 'address_lookup', column: 'region_code' },
                     { type: 'foreign_key', target: 'sales_type', column: 'sale_type' }
+                ],
+                constraints: [
+                    { type: 'check', condition: "status IN ('available', 'pending', 'sold')", name: 'chk_status' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['region_code'], name: 'idx_properties_region' },
+                    { type: 'index', columns: ['status', 'is_deleted'], name: 'idx_properties_status' },
+                    { type: 'index', columns: ['region_code', 'sale_type', 'status', 'is_deleted'], name: 'idx_properties_composite' }
                 ]
             },
             property_files: {
@@ -599,6 +619,12 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'properties', column: 'property_id' }
+                ],
+                constraints: [
+                    { type: 'unique', columns: ['property_id', 'field_name'], name: 'unique_property_price' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['property_id', 'field_name'], name: 'idx_property_prices_lookup' }
                 ]
             },
             industry_category: {
@@ -634,6 +660,9 @@
                 relationships: [
                     { type: 'foreign_key', target: 'franchises', column: 'franchise_id' },
                     { type: 'foreign_key', target: 'address_lookup', column: 'region_code' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['franchise_id', 'region_code', 'status', 'closed_at', 'is_deleted'], name: 'idx_property_requests_composite' }
                 ]
             },
             property_request_conditions: {
@@ -657,6 +686,9 @@
                     { type: 'foreign_key', target: 'property_types', column: 'property_type_id' },
                     { type: 'foreign_key', target: 'sales_type', column: 'transaction_type' },
                     { type: 'foreign_key', target: 'industry_category', column: 'industry_category_id' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['request_id'], name: 'idx_property_request_conditions_request' }
                 ]
             },
             property_request_budget: {
@@ -724,6 +756,9 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'contract_types', column: 'contract_type_id' }
+                ],
+                constraints: [
+                    { type: 'unique', columns: ['contract_type_id', 'field_name'], name: 'unique_contract_type_field' }
                 ]
             },
             contracts: {
@@ -748,6 +783,12 @@
                     { type: 'foreign_key', target: 'franchises', column: 'franchise_id' },
                     { type: 'foreign_key', target: 'agents', column: 'agent_id' },
                     { type: 'foreign_key', target: 'contract_types', column: 'contract_type_id' }
+                ],
+                constraints: [
+                    { type: 'check', condition: "status IN ('draft', 'in_progress', 'completed', 'cancelled')", name: 'chk_contract_status' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['status', 'is_deleted'], name: 'idx_contract_status' }
                 ]
             },
             contract_terms: {
@@ -760,6 +801,9 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'contracts', column: 'contract_id' }
+                ],
+                constraints: [
+                    { type: 'unique', columns: ['contract_id', 'field_name'], name: 'unique_contract_term' }
                 ]
             },
             contract_files: {
@@ -810,6 +854,39 @@
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['user_id', 'is_read'], name: 'idx_notifications_user' }
+                ]
+            },
+            // 매물 제안 관련 테이블
+            property_proposals: {
+                category: "properties",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '고유 식별자', isPrimary: true },
+                    { name: 'request_id', type: 'INT', comment: '매물 요청 ID' },
+                    { name: 'property_id', type: 'INT', comment: '매물 ID' },
+                    { name: 'agent_id', type: 'INT', comment: '부동산 중개사 ID' },
+                    { name: 'description', type: 'TEXT', comment: '설명' },
+                    { name: 'price', type: 'DECIMAL(15,2)', comment: '가격' },
+                    { name: 'is_accepted', type: 'TINYINT(1)', comment: '수락 여부' },
+                    { name: 'status', type: 'VARCHAR(20)', comment: '상태 (pending, accepted, rejected, cancelled)' },
+                    { name: 'created_at', type: 'TIMESTAMP', comment: '생성 시간' },
+                    { name: 'updated_at', type: 'TIMESTAMP', comment: '수정 시간' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'property_requests', column: 'request_id' },
+                    { type: 'foreign_key', target: 'properties', column: 'property_id' },
+                    { type: 'foreign_key', target: 'agents', column: 'agent_id' }
+                ],
+                constraints: [
+                    { type: 'check', condition: "status IN ('pending', 'accepted', 'rejected', 'cancelled')", name: 'chk_proposal_status' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['request_id'], name: 'idx_property_proposals_request' },
+                    { type: 'index', columns: ['agent_id'], name: 'idx_property_proposals_agent' },
+                    { type: 'index', columns: ['property_id'], name: 'idx_property_proposals_property' },
+                    { type: 'index', columns: ['request_id', 'status'], name: 'idx_property_proposals_composite' }
                 ]
             }
         };
@@ -954,6 +1031,57 @@
                             });
                             
                             tableCard.appendChild(relationshipSection);
+                        }
+                        
+                        // 제약조건 정보 추가
+                        if (table.constraints && table.constraints.length > 0) {
+                            const constraintSection = document.createElement('div');
+                            constraintSection.className = 'relationship';
+                            constraintSection.style.borderTopStyle = 'dotted';
+                            
+                            const constraintHeader = document.createElement('div');
+                            constraintHeader.className = 'column-name';
+                            constraintHeader.textContent = '제약조건';
+                            constraintHeader.style.marginBottom = '8px';
+                            constraintSection.appendChild(constraintHeader);
+                            
+                            table.constraints.forEach(constraint => {
+                                const constraintItem = document.createElement('div');
+                                constraintItem.className = 'relationship-item';
+                                
+                                if (constraint.type === 'unique') {
+                                    constraintItem.innerHTML = `<span>🔒</span> UNIQUE (${constraint.columns.join(', ')})`;
+                                } else if (constraint.type === 'check') {
+                                    constraintItem.innerHTML = `<span>✓</span> CHECK ${constraint.condition}`;
+                                }
+                                
+                                constraintSection.appendChild(constraintItem);
+                            });
+                            
+                            tableCard.appendChild(constraintSection);
+                        }
+                        
+                        // 인덱스 정보 추가
+                        if (table.indexes && table.indexes.length > 0) {
+                            const indexSection = document.createElement('div');
+                            indexSection.className = 'relationship';
+                            indexSection.style.borderTopStyle = 'dotted';
+                            
+                            const indexHeader = document.createElement('div');
+                            indexHeader.className = 'column-name';
+                            indexHeader.textContent = '인덱스';
+                            indexHeader.style.marginBottom = '8px';
+                            indexSection.appendChild(indexHeader);
+                            
+                            table.indexes.forEach(index => {
+                                const indexItem = document.createElement('div');
+                                indexItem.className = 'relationship-item';
+                                indexItem.innerHTML = `<span>🔍</span> ${index.name}: (${index.columns.join(', ')})`;
+                                
+                                indexSection.appendChild(indexItem);
+                            });
+                            
+                            tableCard.appendChild(indexSection);
                         }
                         
                         categoryContent.appendChild(tableCard);
