@@ -20,6 +20,7 @@
                 properties: #2ecc71;
                 contracts: #f1c40f;
                 others: #95a5a6;
+                ai: #9b59b6;
             }
         }
 
@@ -328,6 +329,7 @@
         .category-properties { --category-color: #2ecc71; }
         .category-contracts { --category-color: #f1c40f; }
         .category-others { --category-color: #95a5a6; }
+        .category-ai { --category-color: #9b59b6; }
 
         /* 반응형 디자인 */
         @media (max-width: 1200px) {
@@ -401,6 +403,7 @@
                 <button class="filter-btn" data-category="properties">매물</button>
                 <button class="filter-btn" data-category="contracts">계약</button>
                 <button class="filter-btn" data-category="others">기타</button>
+                <button class="filter-btn" data-category="ai">AI 보고서</button>
             </div>
             <button class="image-view-btn" onclick="openImageModal()">이미지로 보기</button>
             <button class="image-view-btn" style="background: #FF6B81; margin-left: 10px;" onclick="location.href='for_dumbs.html'">초보자용 설명 보기</button>
@@ -435,6 +438,7 @@
                 columns: [
                     { name: 'id', type: 'INT', comment: '고유 사용자 ID', isPrimary: true },
                     { name: 'email', type: 'VARCHAR(255)', comment: '로그인 이메일', isUnique: true },
+                    { name: 'login_id', type: 'VARCHAR(100)', comment: '로그인용 ID', isUnique: true },
                     { name: 'password_hash', type: 'VARCHAR(255)', comment: '암호화된 비밀번호' },
                     { name: 'role_id', type: 'INT', comment: '사용자 역할 ID' },
                     { name: 'is_deleted', type: 'TINYINT(1)', comment: '계정 삭제 여부' },
@@ -475,7 +479,19 @@
                     { name: 'id', type: 'INT', comment: '고유 식별자', isPrimary: true },
                     { name: 'user_id', type: 'INT', comment: '사용자 ID (고유값)', isUnique: true },
                     { name: 'agency_name', type: 'VARCHAR(100)', comment: '부동산 중개사무소 이름' },
-                    { name: 'license_number', type: 'VARCHAR(255)', comment: '공인중개사 등록번호 (암호화 저장)' }
+                    { name: 'license_number', type: 'VARCHAR(255)', comment: '공인중개사 등록번호 (암호화 저장)' },
+                    { name: 'business_number', type: 'VARCHAR(255)', comment: '사업자등록번호' },
+                    { name: 'representative_name', type: 'VARCHAR(100)', comment: '대표자명' },
+                    { name: 'representative_email', type: 'VARCHAR(255)', comment: '대표자 이메일' },
+                    { name: 'representative_phone', type: 'VARCHAR(20)', comment: '대표자 휴대폰 번호' },
+                    { name: 'personal_id', type: 'VARCHAR(100)', comment: '개인 아이디 (대표 본인용)' },
+                    { name: 'group_id', type: 'VARCHAR(100)', comment: '단체 아이디 (직원들용)' },
+                    { name: 'business_certificate_path', type: 'VARCHAR(255)', comment: '사업자등록증 파일 경로' },
+                    { name: 'license_certificate_path', type: 'VARCHAR(255)', comment: '개설등록증 파일 경로' },
+                    { name: 'start_date', type: 'VARCHAR(10)', comment: '개업일자 (YYYYMMDD 형식)' },
+                    { name: 'is_phone_verified', type: 'TINYINT(1)', comment: '휴대폰 인증 여부' },
+                    { name: 'is_group_account', type: 'TINYINT(1)', comment: '그룹 계정 여부' },
+                    { name: 'linked_group_id', type: 'INT', comment: '연결된 그룹 계정 ID' }
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'users', column: 'user_id' }
@@ -519,6 +535,33 @@
                 ],
                 constraints: [
                     { type: 'unique', columns: ['user_id', 'permission_key'], name: 'unique_user_permission' }
+                ]
+            },
+            user_tokens: {
+                category: "users",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '고유 식별자', isPrimary: true },
+                    { name: 'user_id', type: 'INT', comment: '사용자 ID' },
+                    { name: 'refresh_token', type: 'VARCHAR(512)', comment: '리프레시 토큰' },
+                    { name: 'token', type: 'VARCHAR(512)', comment: '액세스 토큰' },
+                    { name: 'token_type', type: 'VARCHAR(50)', comment: '토큰 유형' },
+                    { name: 'user_agent', type: 'VARCHAR(255)', comment: '사용자 에이전트' },
+                    { name: 'ip_address', type: 'VARCHAR(45)', comment: 'IP 주소' },
+                    { name: 'expires_at', type: 'TIMESTAMP', comment: '만료 시간' },
+                    { name: 'revoked', type: 'TINYINT(1)', comment: '취소 여부' },
+                    { name: 'is_expired', type: 'TINYINT(1)', comment: '만료 여부' },
+                    { name: 'created_at', type: 'TIMESTAMP', comment: '생성 시간' },
+                    { name: 'updated_at', type: 'TIMESTAMP', comment: '수정 시간' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'users', column: 'user_id' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['user_id'], name: 'idx_user_tokens_user' },
+                    { type: 'index', columns: ['refresh_token'], name: 'idx_refresh_token' },
+                    { type: 'index', columns: ['token'], name: 'idx_token' },
+                    { type: 'index', columns: ['expires_at'], name: 'idx_user_tokens_expires' },
+                    { type: 'index', columns: ['user_id', 'revoked', 'is_expired', 'expires_at'], name: 'idx_user_tokens_active' }
                 ]
             },
 
@@ -588,6 +631,17 @@
                     { type: 'index', columns: ['region_code'], name: 'idx_properties_region' },
                     { type: 'index', columns: ['status', 'is_deleted'], name: 'idx_properties_status' },
                     { type: 'index', columns: ['region_code', 'sale_type', 'status', 'is_deleted'], name: 'idx_properties_composite' }
+                ]
+            },
+            property_tags: {
+                category: "properties",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '고유 식별자', isPrimary: true },
+                    { name: 'property_id', type: 'INT', comment: '매물 ID' },
+                    { name: 'tag', type: 'TEXT', comment: '태그 내용' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'properties', column: 'property_id' }
                 ]
             },
             property_files: {
@@ -712,7 +766,7 @@
                 columns: [
                     { name: 'id', type: 'INT', comment: '고유 식별자', isPrimary: true },
                     { name: 'request_id', type: 'INT', comment: '매물 요청 ID' },
-                    { name: 'tag', type: 'VARCHAR(100)', comment: '태그 내용' }
+                    { name: 'tag', type: 'TEXT', comment: '태그 내용' }
                 ],
                 relationships: [
                     { type: 'foreign_key', target: 'property_requests', column: 'request_id' }
@@ -859,6 +913,95 @@
                     { type: 'index', columns: ['user_id', 'is_read'], name: 'idx_notifications_user' }
                 ]
             },
+            
+            // AI 보고서 관련 테이블
+            ai_reports: {
+                category: "ai",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '고유 식별자', isPrimary: true },
+                    { name: 'report_type', type: 'ENUM', comment: '리포트 유형 구분 (franchise, agent)' },
+                    { name: 'property_id', type: 'INT', comment: '분석 대상 매물 ID' },
+                    { name: 'property_request_id', type: 'INT', comment: '프랜차이즈용: 관련 매물 요청 ID' },
+                    { name: 'property_proposal_id', type: 'INT', comment: '프랜차이즈용: 관련 매물 제안 ID' },
+                    { name: 'title', type: 'VARCHAR(255)', comment: '보고서 제목' },
+                    { name: 'address', type: 'VARCHAR(255)', comment: '매물 주소' },
+                    { name: 'overall_score', type: 'DECIMAL(5,2)', comment: '종합 평가 점수' },
+                    { name: 'overall_comment', type: 'TEXT', comment: '종합 평가 코멘트' },
+                    { name: 'created_by', type: 'INT', comment: '보고서 생성 요청자 ID' },
+                    { name: 'created_at', type: 'DATETIME', comment: '보고서 생성일' },
+                    { name: 'is_deleted', type: 'BOOLEAN', comment: '삭제 여부' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'properties', column: 'property_id' },
+                    { type: 'foreign_key', target: 'property_requests', column: 'property_request_id' },
+                    { type: 'foreign_key', target: 'property_proposals', column: 'property_proposal_id' },
+                    { type: 'foreign_key', target: 'users', column: 'created_by' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['report_type'], name: 'idx_report_type' },
+                    { type: 'index', columns: ['property_id'], name: 'idx_property_id' },
+                    { type: 'index', columns: ['created_by'], name: 'idx_created_by' }
+                ]
+            },
+            ai_report_data: {
+                category: "ai",
+                columns: [
+                    { name: 'report_id', type: 'INT', comment: '보고서 ID', isPrimary: true },
+                    { name: 'location_score', type: 'DECIMAL(5,2)', comment: '입지 점수' },
+                    { name: 'location_comment', type: 'TEXT', comment: '입지 분석 코멘트' },
+                    { name: 'location_strengths', type: 'JSON', comment: '입지 강점 목록' },
+                    { name: 'location_weaknesses', type: 'JSON', comment: '입지 약점 목록' },
+                    { name: 'market_score', type: 'DECIMAL(5,2)', comment: '상권 점수' },
+                    { name: 'market_comment', type: 'TEXT', comment: '상권 분석 코멘트' },
+                    { name: 'demographic_data', type: 'JSON', comment: '인구통계 데이터' },
+                    { name: 'traffic_data', type: 'JSON', comment: '유동인구 데이터' },
+                    { name: 'competition_score', type: 'DECIMAL(5,2)', comment: '경쟁 점수' },
+                    { name: 'competition_comment', type: 'TEXT', comment: '경쟁 분석 코멘트' },
+                    { name: 'competitors', type: 'JSON', comment: '경쟁업체 정보' },
+                    { name: 'competition_risks', type: 'JSON', comment: '경쟁 위험 요소' },
+                    { name: 'profit_score', type: 'DECIMAL(5,2)', comment: '수익성 점수' },
+                    { name: 'profit_comment', type: 'TEXT', comment: '수익성 분석 코멘트' },
+                    { name: 'expected_sales', type: 'JSON', comment: '예상 매출 데이터' },
+                    { name: 'roi', type: 'DECIMAL(5,2)', comment: '투자수익률 (%)' },
+                    { name: 'break_even_point', type: 'INT', comment: '손익분기점 (개월)' },
+                    { name: 'payback_period', type: 'INT', comment: '투자회수기간 (개월)' },
+                    { name: 'swot_analysis', type: 'JSON', comment: 'SWOT 분석 (프랜차이즈용)' },
+                    { name: 'recommendations', type: 'JSON', comment: '추천사항 목록 (프랜차이즈용)' },
+                    { name: 'agent_recommended_businesses', type: 'JSON', comment: '추천 업종 순위' },
+                    { name: 'agent_location_detail', type: 'JSON', comment: '입지 상세 정보' },
+                    { name: 'agent_facility_score', type: 'DECIMAL(5,2)', comment: '시설 점수' },
+                    { name: 'agent_convenience_score', type: 'DECIMAL(5,2)', comment: '편의성 점수' },
+                    { name: 'agent_accessibility_score', type: 'DECIMAL(5,2)', comment: '접근성 점수' },
+                    { name: 'agent_exposure_score', type: 'DECIMAL(5,2)', comment: '노출도 점수' },
+                    { name: 'agent_environment_score', type: 'DECIMAL(5,2)', comment: '환경 점수' },
+                    { name: 'agent_nearby_facilities', type: 'JSON', comment: '주변 시설' },
+                    { name: 'agent_rent_price_trend', type: 'DECIMAL(5,2)', comment: '임대료 추세 (%)' },
+                    { name: 'agent_sales_trend', type: 'DECIMAL(5,2)', comment: '매출 추세 (%)' },
+                    { name: 'agent_industry_distribution', type: 'JSON', comment: '업종 분포' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'ai_reports', column: 'report_id' }
+                ]
+            },
+            ai_report_charts: {
+                category: "ai",
+                columns: [
+                    { name: 'id', type: 'INT', comment: '고유 식별자', isPrimary: true },
+                    { name: 'report_id', type: 'INT', comment: '보고서 ID' },
+                    { name: 'chart_type', type: 'VARCHAR(50)', comment: '차트 유형 (bar, pie, line 등)' },
+                    { name: 'chart_title', type: 'VARCHAR(100)', comment: '차트 제목' },
+                    { name: 'chart_data', type: 'JSON', comment: '차트 데이터' },
+                    { name: 'chart_options', type: 'JSON', comment: '차트 옵션' },
+                    { name: 'section', type: 'VARCHAR(50)', comment: '소속 섹션 (location, market 등)' },
+                    { name: 'display_order', type: 'INT', comment: '표시 순서' }
+                ],
+                relationships: [
+                    { type: 'foreign_key', target: 'ai_reports', column: 'report_id' }
+                ],
+                indexes: [
+                    { type: 'index', columns: ['report_id', 'section'], name: 'idx_report_section' }
+                ]
+            },
             // 매물 제안 관련 테이블
             property_proposals: {
                 category: "properties",
@@ -925,7 +1068,8 @@
                     users: { title: '사용자 관련 테이블', tables: [] },
                     properties: { title: '매물 관련 테이블', tables: [] },
                     contracts: { title: '계약 관련 테이블', tables: [] },
-                    others: { title: '기타 편의 기능 테이블', tables: [] }
+                    others: { title: '기타 편의 기능 테이블', tables: [] },
+                    ai: { title: 'AI 보고서 관련 테이블', tables: [] }
                 };
                 
                 // 테이블 필터링 및 그룹화
